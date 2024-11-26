@@ -1,0 +1,61 @@
+version: 2.1
+
+orbs:
+  maven: circleci/maven@2.0.0
+  coveralls: coveralls/coveralls@2.2.5
+  browser-tools: circleci/browser-tools@1.4.8
+executors:
+  ubuntu:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true # default - false
+jobs:
+  build:
+    executor: ubuntu
+    steps:
+      - run:
+          name: "Install JDK 21"
+          no_output_timeout: 20m
+          command: |
+            sudo apt-get update && sudo apt-get install openjdk-21-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/java-21-openjdk-amd64/bin/javac
+            java -version
+      - checkout
+      - browser-tools/install-browser-tools
+      - run:
+          name: Start all services declared in docker-compose.yml
+          command: docker-compose -f ./docker-compose.yml up -d
+      - run: mvn -B test verify -Pcoverage
+      - maven/process_test_results
+      - run:
+          name: Analyze on SonarQube Cloud
+          command: mvn -B verify sonar:sonar -Dsonar.projectKey=KimleangSama_RRMS
+      - run:
+          name: Chown data folder
+          command: sudo chown -R $USER:$USER ./data
+      - coveralls/upload:
+          coverage_files: target/site/jacoco/jacoco.xml
+      - store_artifacts:
+          path: target/site/jacoco
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - run:
+          name: Clean up Docker
+          command: |
+            docker-compose down --volumes
+            docker system prune -f
+            sudo systemctl stop docker
+            sudo systemctl stop docker.socket
+    resource_class: large
+workflows:
+  build:
+    jobs:
+      - build:
+          context: SonarCloud

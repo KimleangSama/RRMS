@@ -1,0 +1,21 @@
+groups:
+  - name: RRMS-Alerts
+    rules:
+      - alert: RRMS-Service Is Down
+        expr: up{job="RRMS-Service"} == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.application }} is down."
+          description: "The application {{ $labels.application }} is down for more than 10 seconds."
+      - alert: RRMS-Service Is Back Up
+        expr: up{job="RRMS-Service"} == 1
+        for: 10s
+        labels:
+          severity: info
+        annotations:
+          summary: "{{ $labels.application }} is back up."
+          description: "The application {{ $labels.application }} is back up."
+          
+        
