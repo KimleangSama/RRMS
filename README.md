@@ -7,9 +7,10 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=KimleangSama_RRMS&metric=coverage)](https://sonarcloud.io/dashboard?id=KimleangSama_RRMS)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=KimleangSama_RRMS&metric=ncloc)](https://sonarcloud.io/dashboard?id=KimleangSama_RRMS)
 [![CodeFactor](https://www.codefactor.io/repository/github/kimleangsama/RRMS/badge)](https://www.codefactor.io/repository/github/kimleangsama/RRMS)
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/L9kY62toa6T5od1Zm5Uz6F/5D9sEampBUKGzjQxbQuUT7/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/L9kY62toa6T5od1Zm5Uz6F/5D9sEampBUKGzjQxbQuUT7/tree/main)
 [![Coverage Status](https://coveralls.io/repos/github/KimleangSama/RRMS/badge.svg)](https://coveralls.io/github/KimleangSama/RRMS)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d11b0c251ff6498e9a897d97fee76f1b)](https://app.codacy.com/gh/KimleangSama/Rental-Room-MS/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/308dd5387d434970aa955df2f4f1e8c1)](https://app.codacy.com/gh/KimleangSama/RRMS/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+<br/>
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/L9kY62toa6T5od1Zm5Uz6F/5D9sEampBUKGzjQxbQuUT7/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/L9kY62toa6T5od1Zm5Uz6F/5D9sEampBUKGzjQxbQuUT7/tree/main)
 
 **Rental Room Management System (RRMS)** is a software application designed to streamline the management of rental properties. It serves as a centralized platform for landlords, property managers, and tenants to handle various tasks related to room or property rentals efficiently.
 
