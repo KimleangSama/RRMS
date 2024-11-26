@@ -24,6 +24,7 @@ public class RoomPicture extends BaseEntityAudit {
     @Column(name = "picture_url")
     private String pictureURL;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;

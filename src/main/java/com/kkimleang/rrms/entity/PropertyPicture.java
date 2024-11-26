@@ -20,8 +20,9 @@ public class PropertyPicture extends BaseEntityAudit {
 
     @NotNull
     @Column(name = "picture_url")
-    private String pictureUrl;
+    private String pictureURL;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;

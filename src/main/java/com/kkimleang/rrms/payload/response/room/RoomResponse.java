@@ -28,10 +28,8 @@ public class RoomResponse {
     private final static String INFO = "Room {} is deleted at {}";
 
     public static RoomResponse fromRoom(Room room) {
-        if (room.getDeletedBy() == null && room.getDeletedAt() == null) {
-            RoomResponse roomResponse = mappingRoom(room);
-            roomResponse.setPropertyId(room.getProperty().getId().toString());
-            return roomResponse;
+        if (room.getDeletedBy() == null || room.getDeletedAt() == null) {
+            return mappingRoom(room);
         } else {
             throw new ResourceDeletedException("Room", room.getDeletedAt().toString());
         }

@@ -41,6 +41,7 @@ public class PropertyResponse implements Serializable {
     private String propertyStatus;
     private String propertyType;
     private Set<CharacteristicResponse> characteristics;
+    private Set<PropertyPictureResponse> propertyPictures;
 
     // User Information
     private UUID landlordId;
@@ -49,13 +50,17 @@ public class PropertyResponse implements Serializable {
     private Boolean hasPrivilege = false;
 
     public static PropertyResponse fromProperty(Property property) {
-        if (property.getDeletedBy() == null && property.getDeletedAt() == null) {
+        if (property.getDeletedBy() == null || property.getDeletedAt() == null) {
             PropertyResponse propertyResponse = mappingProperty(property);
             propertyResponse.setLandlordId(property.getUser().getId());
             propertyResponse.setLandlordFullname(property.getUser().getFullname());
             propertyResponse.setProfilePicture(property.getUser().getProfilePicture());
             propertyResponse.setCharacteristics(
                     CharacteristicResponse.fromCharacteristics(property.getPropertyCharacteristics())
+            );
+            log.info("Property Pictures: {}", property.getPropertyPictures());
+            propertyResponse.setPropertyPictures(
+                    PropertyPictureResponse.fromPropertyPictures(property.getPropertyPictures())
             );
             return propertyResponse;
         } else {

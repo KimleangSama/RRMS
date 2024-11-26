@@ -205,7 +205,7 @@ public class UserService {
         try {
             User targetUser = userRepository.findById(targetId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", "Id", targetId));
-            if (!PrivilegeChecker.hasRight(user.getUser(), targetId)) {
+            if (PrivilegeChecker.withoutRight(user.getUser(), targetId)) {
                 throw new RuntimeException("You are not allowed to edit this user information.");
             }
             UserMapper.updateUserFromEditContactRequest(targetUser, request);
@@ -227,7 +227,7 @@ public class UserService {
         try {
             User targetUser = userRepository.findById(targetId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", "Id", targetId));
-            if (!PrivilegeChecker.hasRight(user.getUser(), targetId)) {
+            if (PrivilegeChecker.withoutRight(user.getUser(), targetId)) {
                 throw new RuntimeException("You are not allowed to edit this user information.");
             }
             UserMapper.updateUserFromEditBasicRequest(targetUser, request);

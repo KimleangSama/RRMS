@@ -55,6 +55,7 @@ public class Room extends BaseEntityAudit {
     @Column(name = "available_date")
     private LocalDate availableDate;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;

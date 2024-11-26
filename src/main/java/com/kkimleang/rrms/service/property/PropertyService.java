@@ -8,8 +8,10 @@ import com.kkimleang.rrms.payload.response.property.*;
 import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.user.*;
 import jakarta.transaction.*;
+
 import java.time.*;
 import java.util.*;
+
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.cache.annotation.*;
@@ -24,6 +26,10 @@ public class PropertyService {
     private final String FAILED_GET_EXCEPTION = "Failed to get property {} ";
     private final String FAILED_EDIT_EXCEPTION = "Failed to edit property {} ";
     private final PropertyRepository propertyRepository;
+
+    private boolean withoutPrivilege(CustomUserDetails user, Property property) {
+        return user == null || user.getUser() == null || !property.getUser().getId().equals(user.getUser().getId());
+    }
 
     @Transactional
     public PropertyResponse createProperty(CustomUserDetails user, CreatePropertyRequest request) {
@@ -113,7 +119,7 @@ public class PropertyService {
         try {
             Property property = propertyRepository.findById(propertyId)
                     .orElseThrow(() -> new ResourceNotFoundException(RESOURCE, "Id", propertyId));
-            if (withPrivilege(user, property)) {
+            if (withoutPrivilege(user, property)) {
                 throw new ResourceForbiddenException("Unauthorized to delete property", property);
             }
             PropertyMapper.updatePropertyContactFromEditPropertyContactRequest(property, request);
@@ -135,7 +141,7 @@ public class PropertyService {
         try {
             Property property = propertyRepository.findById(propertyId)
                     .orElseThrow(() -> new ResourceNotFoundException(RESOURCE, "Id", propertyId));
-            if (withPrivilege(user, property)) {
+            if (withoutPrivilege(user, property)) {
                 throw new ResourceForbiddenException("Unauthorized to delete property", property);
             }
             PropertyMapper.updatePropertyInfoFromEditPropertyInfoRequest(property, request);
@@ -160,7 +166,7 @@ public class PropertyService {
             Property property = propertyRepository.findById(propertyId)
                     .orElseThrow(() -> new ResourceNotFoundException(RESOURCE, "Id", propertyId));
             PropertyResponse propertyResponse = PropertyResponse.fromProperty(property);
-            if (withPrivilege(user, property)) {
+            if (withoutPrivilege(user, property)) {
                 throw new ResourceForbiddenException("Unauthorized to delete property", property);
             }
             property.setDeletedBy(user.getUser().getId());
@@ -174,10 +180,6 @@ public class PropertyService {
             log.error(FAILED_EDIT_EXCEPTION, e.getMessage(), e);
             throw new ResourceEditionException(FAILED_EDIT_EXCEPTION + e.getMessage());
         }
-    }
-
-    private boolean withPrivilege(CustomUserDetails user, Property property) {
-        return user == null || user.getUser() == null || !property.getUser().getId().equals(user.getUser().getId());
     }
 
     public List<PropertyResponse> getRecommendedProperties(CustomUserDetails user) {

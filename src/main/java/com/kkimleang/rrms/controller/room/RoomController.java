@@ -1,4 +1,4 @@
-package com.kkimleang.rrms.controller.property;
+package com.kkimleang.rrms.controller.room;
 
 import com.kkimleang.rrms.annotation.*;
 import com.kkimleang.rrms.exception.*;
@@ -70,6 +70,26 @@ public class RoomController {
             return Response.<RoomResponse>notFound()
                     .setErrors(e.getMessage());
         } catch (Exception e) {
+            return Response.<RoomResponse>exception()
+                    .setErrors(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{roomId}/delete")
+    @PreAuthorize("hasRole('LANDLORD') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    public Response<RoomResponse> deleteRoomById(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable UUID roomId
+    ) {
+        try {
+            RoomResponse roomResponse = roomService.deleteRoomById(user, roomId);
+            return Response.<RoomResponse>ok()
+                    .setPayload(roomResponse);
+        } catch (ResourceNotFoundException e) {
+            return Response.<RoomResponse>notFound()
+                    .setErrors(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to delete room {}", e.getMessage(), e);
             return Response.<RoomResponse>exception()
                     .setErrors(e.getMessage());
         }

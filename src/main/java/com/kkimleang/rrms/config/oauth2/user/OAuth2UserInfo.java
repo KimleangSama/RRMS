@@ -1,11 +1,12 @@
 package com.kkimleang.rrms.config.oauth2.user;
 
 import java.util.*;
+
 import lombok.*;
 
 @Getter
 @ToString
-public abstract sealed class OAuth2UserInfo permits GoogleOAuth2UserInfo, FacebookOAuth2UserInfo {
+public abstract class OAuth2UserInfo {
     protected Map<String, Object> attributes;
 
     protected OAuth2UserInfo(Map<String, Object> attributes) {
