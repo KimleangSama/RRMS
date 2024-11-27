@@ -59,10 +59,12 @@ public class RoomController {
     @GetMapping("/of-property/{propertyId}")
     public Response<List<RoomResponse>> getRoomsOfProperty(
             @CurrentUser CustomUserDetails user,
-            @PathVariable UUID propertyId
+            @PathVariable UUID propertyId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
-            List<RoomResponse> roomResponses = roomService.getRoomsOfProperty(user, propertyId);
+            List<RoomResponse> roomResponses = roomService.getRoomsOfProperty(user, propertyId, page, size);
             return Response.<List<RoomResponse>>ok()
                     .setPayload(roomResponses);
         } catch (ResourceNotFoundException e) {

@@ -7,15 +7,15 @@ import java.util.*;
 import lombok.*;
 import org.springframework.data.redis.core.*;
 
-@RedisHash("PropertyCharacteristics")
+@RedisHash("PropertyChars")
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "property_characteristics", uniqueConstraints = {
+@Table(name = "property_chars", uniqueConstraints = {
         @UniqueConstraint(columnNames = "name")
 })
-public class PropertyCharacteristic implements Serializable {
+public class PropertyChars implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

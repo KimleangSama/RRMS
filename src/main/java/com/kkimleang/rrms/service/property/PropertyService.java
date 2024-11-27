@@ -5,6 +5,7 @@ import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.request.mapper.*;
 import com.kkimleang.rrms.payload.request.property.*;
 import com.kkimleang.rrms.payload.response.property.*;
+import com.kkimleang.rrms.repository.file.*;
 import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.user.*;
 import jakarta.transaction.*;
@@ -23,7 +24,9 @@ public class PropertyService {
     private final String RESOURCE = "Property";
     private final String FAILED_GET_EXCEPTION = "Failed to get property {} ";
     private final String FAILED_EDIT_EXCEPTION = "Failed to edit property {} ";
+
     private final PropertyRepository propertyRepository;
+    private final PropRoomPictureRepository propRoomPictureRepository;
 
     private boolean withoutPrivilege(CustomUserDetails user, Property property) {
         return user == null || user.getUser() == null || !property.getUser().getId().equals(user.getUser().getId());
@@ -39,12 +42,17 @@ public class PropertyService {
             if (propertyRepository.existsByUserIdAndName(currentUser.getId(), request.getName())) {
                 throw new ResourceForbiddenException(RESOURCE + " with name " + request.getName() + " already exists in your assets", currentUser.getUsername());
             }
+            Set<PropRoomPicture> pictures = propRoomPictureRepository.findByIdIn(request.getPictures());
             Property property = new Property();
             PropertyMapper.createPropertyFromCreatePropertyRequest(property, request);
             property.setUser(currentUser);
             property.setCreatedBy(currentUser.getId());
-            property = propertyRepository.save(property);
-            return PropertyResponse.fromProperty(property);
+            property.setPropRoomPictures(pictures);
+            Property finalProperty = propertyRepository.save(property);
+            // Update pictures with property id
+            pictures.forEach(picture -> picture.setProperty(finalProperty));
+            propRoomPictureRepository.saveAll(pictures);
+            return PropertyResponse.fromProperty(currentUser, finalProperty);
         } catch (ResourceForbiddenException e) {
             log.error("Failed to create property {}", e.getMessage(), e);
             throw e;

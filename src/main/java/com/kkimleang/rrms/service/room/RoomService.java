@@ -5,6 +5,7 @@ import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.request.mapper.*;
 import com.kkimleang.rrms.payload.request.room.*;
 import com.kkimleang.rrms.payload.response.room.*;
+import com.kkimleang.rrms.repository.file.*;
 import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.service.user.*;
@@ -26,8 +27,8 @@ public class RoomService {
     private final String FAILED_EDIT_EXCEPTION = "Failed to edit room {} ";
 
     private final RoomRepository roomRepository;
-    private final RoomPictureRepository roomPictureRepository;
     private final PropertyRepository propertyRepository;
+    private final PropRoomPictureRepository propRoomPictureRepository;
 
     private boolean withoutPrivilege(CustomUserDetails user, Room room) {
         try {
@@ -49,7 +50,7 @@ public class RoomService {
                 throw new ResourceForbiddenException(RESOURCE + " with room number " + request.getRoomNumber() + " already exists in your property.", currentUser.getUsername());
             }
             Property property = propertyRepository.findById(request.getPropertyId()).orElseThrow(() -> new ResourceNotFoundException("Property", "Id", request.getPropertyId()));
-            Set<RoomPicture> pictures = roomPictureRepository.findAllByPictureURLIn(request.getRoomPictures());
+            Set<PropRoomPicture> pictures = propRoomPictureRepository.findByFilenameIn(request.getRoomPictures());
             Room room = new Room();
             RoomMapper.createRoomFromCreateRoomRequest(room, request);
             room.setCreatedBy(currentUser.getId());
@@ -66,10 +67,26 @@ public class RoomService {
         }
     }
 
-    public List<RoomResponse> getRoomsOfProperty(CustomUserDetails user, UUID propertyId) {
+    @Transactional
+    public List<RoomResponse> getRoomsOfProperty(
+            CustomUserDetails user,
+            UUID propertyId,
+            int page,
+            int size
+    ) {
         try {
-            List<Room> rooms = roomRepository.findByPropertyId(propertyId);
-            return RoomResponse.fromRooms(rooms);
+            Property property = propertyRepository.findById(propertyId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Property", "Id", propertyId));
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Room> rooms = roomRepository.findByPropertyId(property.getId(), pageable);
+            if (rooms.isEmpty()) {
+                throw new ResourceNotFoundException(RESOURCE, "of property " + propertyId, rooms);
+            }
+            List<Room> roomList = rooms.getContent();
+            if (user == null || user.getUser() == null) {
+                return RoomResponse.fromRooms(roomList);
+            }
+            return RoomResponse.fromRooms(user.getUser(), roomList);
         } catch (Exception e) {
             throw new ResourceException("Room", e.getMessage());
         }

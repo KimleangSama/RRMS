@@ -3,12 +3,9 @@ package com.kkimleang.rrms.entity;
 import com.kkimleang.rrms.enums.room.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-
 import java.io.*;
 import java.time.*;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.*;
 import lombok.*;
 import org.springframework.data.redis.core.*;
 
@@ -61,5 +58,5 @@ public class Room extends BaseEntityAudit {
     private Property property;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoomPicture> roomPictures = new HashSet<>();
+    private Set<PropRoomPicture> roomPictures = new HashSet<>();
 }

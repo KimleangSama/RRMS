@@ -3,8 +3,6 @@ package com.kkimleang.rrms.payload.response.property;
 import com.kkimleang.rrms.config.ModelMapperConfig;
 import com.kkimleang.rrms.entity.Property;
 import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.enums.property.PropertyStatus;
-import com.kkimleang.rrms.enums.property.PropertyType;
 import lombok.*;
 
 import java.io.Serializable;
@@ -38,7 +36,7 @@ public class PropertyOverviewResponse implements Serializable {
             propertyResponse.setHasPrivilege(true);
         }
         propertyResponse.setCharacteristics(
-                CharacteristicResponse.fromCharacteristics(property.getPropertyCharacteristics())
+                CharacteristicResponse.fromCharacteristics(property.getPropertyChars())
         );
         return propertyResponse;
     }

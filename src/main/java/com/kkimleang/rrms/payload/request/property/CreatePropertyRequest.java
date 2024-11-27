@@ -24,5 +24,6 @@ public class CreatePropertyRequest {
     private Double longitude;
     private String status;
     private String type;
+    private Set<UUID> pictures;
     private Set<UUID> characteristics;
 }

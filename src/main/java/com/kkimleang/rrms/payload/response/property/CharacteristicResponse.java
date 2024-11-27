@@ -18,7 +18,7 @@ public class CharacteristicResponse implements Serializable {
     private String name;
     private String description;
 
-    public static Set<CharacteristicResponse> fromCharacteristics(Set<PropertyCharacteristic> characteristics) {
+    public static Set<CharacteristicResponse> fromCharacteristics(Set<PropertyChars> characteristics) {
         return characteristics.stream().map(characteristic -> {
             CharacteristicResponse characteristicResponse = new CharacteristicResponse();
             ModelMapperConfig.modelMapper().map(characteristic, characteristicResponse);

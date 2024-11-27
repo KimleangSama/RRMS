@@ -63,6 +63,7 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/verify",
 
+            "/api/v1/file/**",
             "/api/v1/property/**",
             "/api/v1/room/all",
 

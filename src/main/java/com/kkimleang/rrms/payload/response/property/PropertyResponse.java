@@ -1,19 +1,13 @@
 package com.kkimleang.rrms.payload.response.property;
 
-import com.kkimleang.rrms.config.ModelMapperConfig;
+import com.kkimleang.rrms.config.*;
 import com.kkimleang.rrms.entity.*;
-import com.kkimleang.rrms.enums.property.*;
-
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.response.file.*;
 import java.io.*;
 import java.util.*;
-
-import com.kkimleang.rrms.exception.ResourceDeletedException;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.Condition;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.*;
 
 @Slf4j
 @Getter
@@ -41,7 +35,7 @@ public class PropertyResponse implements Serializable {
     private String propertyStatus;
     private String propertyType;
     private Set<CharacteristicResponse> characteristics;
-    private Set<PropertyPictureResponse> propertyPictures;
+    private Set<FileResponse> propertyPictures;
 
     // User Information
     private UUID landlordId;
@@ -56,11 +50,10 @@ public class PropertyResponse implements Serializable {
             propertyResponse.setLandlordFullname(property.getUser().getFullname());
             propertyResponse.setProfilePicture(property.getUser().getProfilePicture());
             propertyResponse.setCharacteristics(
-                    CharacteristicResponse.fromCharacteristics(property.getPropertyCharacteristics())
+                    CharacteristicResponse.fromCharacteristics(property.getPropertyChars())
             );
-            log.info("Property Pictures: {}", property.getPropertyPictures());
             propertyResponse.setPropertyPictures(
-                    PropertyPictureResponse.fromPropertyPictures(property.getPropertyPictures())
+                    FileResponse.fromPropRoomPictures(property.getPropRoomPictures())
             );
             return propertyResponse;
         } else {

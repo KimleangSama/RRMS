@@ -1,4 +1,4 @@
-create table if not exists property_characteristics
+create table if not exists property_chars
 (
     id          uuid         not null
         primary key,

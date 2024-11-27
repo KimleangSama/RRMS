@@ -3,10 +3,8 @@ package com.kkimleang.rrms.entity;
 import com.kkimleang.rrms.enums.property.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-
 import java.io.*;
 import java.util.*;
-
 import lombok.*;
 import org.springframework.data.redis.core.*;
 
@@ -70,14 +68,14 @@ public class Property extends BaseEntityAudit {
     private User user;
 
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<PropertyPicture> propertyPictures = new HashSet<>();
+    private Set<PropRoomPicture> propRoomPictures = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name = "properties_characteristics",
+            name = "properties_chars",
             joinColumns = @JoinColumn(name = "property_id"),
-            inverseJoinColumns = @JoinColumn(name = "characteristic_id"),
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"property_id", "characteristic_id"}, name = "unq_property_characteristic")}
+            inverseJoinColumns = @JoinColumn(name = "char_id"),
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"property_id", "char_id"}, name = "unq_property_char")}
     )
-    private Set<PropertyCharacteristic> propertyCharacteristics = new HashSet<>();
+    private Set<PropertyChars> propertyChars = new HashSet<>();
 }

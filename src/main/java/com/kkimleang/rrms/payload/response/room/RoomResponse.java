@@ -39,7 +39,6 @@ public class RoomResponse {
     public static RoomResponse fromRoom(User user, Room room) {
         if (room.getDeletedBy() == null || room.getDeletedAt() == null) {
             RoomResponse response = mappingRoom(room);
-            log.error("{}", room.getProperty().getUser().getId());
             if (user.getId().equals(room.getProperty().getUser().getId())) {
                 response.setHasPrivilege(true);
             }
