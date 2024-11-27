@@ -9,6 +9,7 @@ import com.kkimleang.rrms.payload.request.property.CreatePropertyRequest;
 import com.kkimleang.rrms.payload.request.property.EditPropertyBasicRequest;
 import com.kkimleang.rrms.payload.request.property.EditPropertyContactRequest;
 import com.kkimleang.rrms.payload.request.room.CreateRoomRequest;
+import com.kkimleang.rrms.payload.request.room.EditRoomRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Condition;
 import org.modelmapper.ModelMapper;
@@ -26,6 +27,17 @@ public class RoomMapper {
             ModelMapperConfig.modelMapper().map(request, room);
         } catch (Exception e) {
             log.error("Failed to create room from request {}", e.getMessage(), e);
+        }
+    }
+
+    public static void editRoomFromEditRoomRequest(Room room, EditRoomRequest request) {
+        try {
+            if (request == null) {
+                return;
+            }
+            ModelMapperConfig.modelMapper().map(request, room);
+        } catch (Exception e) {
+            log.error("Failed to edit room from request {}", e.getMessage(), e);
         }
     }
 }

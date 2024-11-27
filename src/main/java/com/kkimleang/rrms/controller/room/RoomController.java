@@ -113,4 +113,25 @@ public class RoomController {
                     .setErrors(e.getMessage());
         }
     }
+
+    @PutMapping("/{roomId}/edit")
+    @PreAuthorize("hasRole('LANDLORD') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    public Response<RoomResponse> editRoom(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable UUID roomId,
+            @RequestBody EditRoomRequest request
+    ) {
+        try {
+            RoomResponse roomResponse = roomService.editRoom(user, roomId, request);
+            return Response.<RoomResponse>ok()
+                    .setPayload(roomResponse);
+        } catch (ResourceNotFoundException e) {
+            return Response.<RoomResponse>notFound()
+                    .setErrors(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to edit room {}", e.getMessage(), e);
+            return Response.<RoomResponse>exception()
+                    .setErrors(e.getMessage());
+        }
+    }
 }

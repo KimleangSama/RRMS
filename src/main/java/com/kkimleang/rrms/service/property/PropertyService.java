@@ -131,7 +131,7 @@ public class PropertyService {
             if (withoutPrivilege(user, property)) {
                 throw new ResourceForbiddenException("Unauthorized to delete property", property);
             }
-            PropertyMapper.updatePropertyContactFromEditPropertyContactRequest(property, request);
+            PropertyMapper.editPropertyContactFromEditPropertyContactRequest(property, request);
             property.setUpdatedBy(user.getUser().getId());
             property.setUpdatedAt(Instant.now());
             property = propertyRepository.save(property);
@@ -153,7 +153,7 @@ public class PropertyService {
             if (withoutPrivilege(user, property)) {
                 throw new ResourceForbiddenException("Unauthorized to delete property", property);
             }
-            PropertyMapper.updatePropertyInfoFromEditPropertyInfoRequest(property, request);
+            PropertyMapper.editPropertyInfoFromEditPropertyInfoRequest(property, request);
             property.setUpdatedBy(user.getUser().getId());
             property.setUpdatedAt(Instant.now());
             property = propertyRepository.save(property);

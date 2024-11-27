@@ -25,7 +25,7 @@ public class PropertyMapper {
         }
     }
 
-    public static void updatePropertyContactFromEditPropertyContactRequest(Property property, EditPropertyContactRequest request) {
+    public static void editPropertyContactFromEditPropertyContactRequest(Property property, EditPropertyContactRequest request) {
         try {
             if (request == null) {
                 return;
@@ -42,7 +42,7 @@ public class PropertyMapper {
         }
     }
 
-    public static void updatePropertyInfoFromEditPropertyInfoRequest(Property property, EditPropertyBasicRequest request) {
+    public static void editPropertyInfoFromEditPropertyInfoRequest(Property property, EditPropertyBasicRequest request) {
         try {
             if (request == null) {
                 return;

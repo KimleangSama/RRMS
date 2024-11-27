@@ -10,8 +10,10 @@ import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.service.user.*;
 import jakarta.transaction.*;
+
 import java.time.*;
 import java.util.*;
+
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.data.domain.*;
@@ -144,6 +146,26 @@ public class RoomService {
             return RoomResponse.fromRooms(user.getUser(), roomList);
         } catch (Exception e) {
             throw new ResourceException("Room", e.getMessage());
+        }
+    }
+
+    public RoomResponse editRoom(CustomUserDetails user, UUID roomId, EditRoomRequest request) {
+        try {
+            Room room = roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", "Id", roomId));
+            if (withoutPrivilege(user, room)) {
+                throw new ResourceForbiddenException("Unauthorized to edit room", room);
+            }
+            RoomMapper.editRoomFromEditRoomRequest(room, request);
+            room.setUpdatedBy(user.getUser().getId());
+            room.setUpdatedAt(Instant.now());
+            room = roomRepository.save(room);
+            return RoomResponse.fromRoom(room);
+        } catch (ResourceForbiddenException | ResourceNotFoundException e) {
+            log.error(FAILED_GET_EXCEPTION, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error(FAILED_EDIT_EXCEPTION, e.getMessage(), e);
+            throw new ResourceEditionException(FAILED_EDIT_EXCEPTION + e.getMessage());
         }
     }
 }
