@@ -8,10 +8,8 @@ import com.kkimleang.rrms.payload.response.property.*;
 import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.user.*;
 import jakarta.transaction.*;
-
 import java.time.*;
 import java.util.*;
-
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.cache.annotation.*;

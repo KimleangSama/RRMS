@@ -2,20 +2,17 @@ package com.kkimleang.rrms.service.room;
 
 import com.kkimleang.rrms.entity.*;
 import com.kkimleang.rrms.exception.*;
-import com.kkimleang.rrms.payload.request.mapper.RoomMapper;
-import com.kkimleang.rrms.payload.request.room.CreateRoomRequest;
-import com.kkimleang.rrms.payload.response.room.RoomResponse;
+import com.kkimleang.rrms.payload.request.mapper.*;
+import com.kkimleang.rrms.payload.request.room.*;
+import com.kkimleang.rrms.payload.response.room.*;
 import com.kkimleang.rrms.repository.property.*;
-import com.kkimleang.rrms.repository.room.RoomPictureRepository;
-import com.kkimleang.rrms.repository.room.RoomRepository;
+import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.service.user.*;
-
-import java.time.Instant;
+import jakarta.transaction.*;
+import java.time.*;
 import java.util.*;
-
-import jakarta.transaction.Transactional;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
 
 @Slf4j
@@ -23,6 +20,7 @@ import org.springframework.stereotype.*;
 @RequiredArgsConstructor
 public class RoomService {
     private final String RESOURCE = "Room";
+    private final String FAILED_CREATE_EXCEPTION = "Failed to create room {} ";
     private final String FAILED_GET_EXCEPTION = "Failed to get room {} ";
     private final String FAILED_EDIT_EXCEPTION = "Failed to edit room {} ";
 
@@ -32,7 +30,6 @@ public class RoomService {
 
     private boolean withoutPrivilege(CustomUserDetails user, Room room) {
         try {
-            log.info("User: {}", room.getProperty().getUser().getId());
             return user == null || user.getUser() == null || !room.getProperty().getUser().getId().equals(user.getUser().getId());
         } catch (Exception e) {
             log.error("Failed to check privilege for room {}", e.getMessage(), e);
@@ -60,10 +57,10 @@ public class RoomService {
             room = roomRepository.save(room);
             return RoomResponse.fromRoom(room);
         } catch (ResourceForbiddenException e) {
-            log.error("Failed to create property {}", e.getMessage(), e);
+            log.error(FAILED_CREATE_EXCEPTION, e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            log.error("Failed to create property {}", e.getMessage(), e);
+            log.error(FAILED_CREATE_EXCEPTION, e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -100,9 +97,7 @@ public class RoomService {
             }
             room.setDeletedBy(user.getUser().getId());
             room.setDeletedAt(Instant.now());
-            room = roomRepository.save(room);
-            log.info("Room After: {}", room.getDeletedAt());
-            log.info("Room After: {}", room.getDeletedBy());
+            roomRepository.save(room);
             return roomResponse;
         } catch (ResourceForbiddenException | ResourceNotFoundException | ResourceDeletedException e) {
             log.error(FAILED_GET_EXCEPTION, e.getMessage(), e);
