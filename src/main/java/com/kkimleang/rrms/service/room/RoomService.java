@@ -13,6 +13,7 @@ import java.time.*;
 import java.util.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.*;
 
 @Slf4j
@@ -78,8 +79,11 @@ public class RoomService {
     public RoomResponse getRoomById(CustomUserDetails user, UUID roomId) {
         try {
             Room room = roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", "Id", roomId));
-            log.info(room.getRoomPictures().toString());
-            return RoomResponse.fromRoom(room);
+            RoomResponse roomResponse = RoomResponse.fromRoom(room);
+            if (!withoutPrivilege(user, room)) {
+                roomResponse.setHasPrivilege(true);
+            }
+            return roomResponse;
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -108,5 +112,21 @@ public class RoomService {
         }
     }
 
-
+    @Transactional
+    public List<RoomResponse> getPagingRooms(CustomUserDetails user, int page, int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Room> rooms = roomRepository.findAll(pageable);
+            if (rooms.isEmpty()) {
+                throw new ResourceNotFoundException(RESOURCE, "of size " + size + " at page " + page, rooms);
+            }
+            List<Room> roomList = rooms.getContent();
+            if (user == null || user.getUser() == null) {
+                return RoomResponse.fromRooms(roomList);
+            }
+            return RoomResponse.fromRooms(user.getUser(), roomList);
+        } catch (Exception e) {
+            throw new ResourceException("Room", e.getMessage());
+        }
+    }
 }

@@ -45,11 +45,12 @@ public class PropertyController {
 
     @GetMapping("/all")
     public Response<List<PropertyResponse>> getAllProperties(
+            @CurrentUser CustomUserDetails user,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
-            List<PropertyResponse> propertyResponses = propertyService.getPagingProperties(page, size);
+            List<PropertyResponse> propertyResponses = propertyService.getPagingProperties(user, page, size);
             return Response.<List<PropertyResponse>>ok()
                     .setPayload(propertyResponses);
         } catch (ResourceNotFoundException e) {

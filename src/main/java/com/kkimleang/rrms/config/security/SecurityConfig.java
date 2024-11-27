@@ -64,6 +64,7 @@ public class SecurityConfig {
             "/api/auth/verify",
 
             "/api/v1/property/**",
+            "/api/v1/room/all",
 
             "/oauth2/**",
             "/error/**",

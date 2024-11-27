@@ -23,6 +23,7 @@ public class RoomResponse {
     private String availableStatus;
     private String availableDate;
     private String propertyId;
+    private Boolean hasPrivilege = false;
     private Set<String> roomPictures;
 
     private final static String INFO = "Room {} is deleted at {}";
@@ -30,6 +31,19 @@ public class RoomResponse {
     public static RoomResponse fromRoom(Room room) {
         if (room.getDeletedBy() == null || room.getDeletedAt() == null) {
             return mappingRoom(room);
+        } else {
+            throw new ResourceDeletedException("Room", room.getDeletedAt().toString());
+        }
+    }
+
+    public static RoomResponse fromRoom(User user, Room room) {
+        if (room.getDeletedBy() == null || room.getDeletedAt() == null) {
+            RoomResponse response = mappingRoom(room);
+            log.error("{}", room.getProperty().getUser().getId());
+            if (user.getId().equals(room.getProperty().getUser().getId())) {
+                response.setHasPrivilege(true);
+            }
+            return response;
         } else {
             throw new ResourceDeletedException("Room", room.getDeletedAt().toString());
         }
@@ -46,6 +60,18 @@ public class RoomResponse {
         for (Room room : rooms) {
             try {
                 roomResponses.add(fromRoom(room));
+            } catch (Exception e) {
+                log.info(INFO, room.getId(), room.getDeletedAt());
+            }
+        }
+        return roomResponses;
+    }
+
+    public static List<RoomResponse> fromRooms(User user, List<Room> rooms) {
+        List<RoomResponse> roomResponses = new ArrayList<>();
+        for (Room room : rooms) {
+            try {
+                roomResponses.add(fromRoom(user, room));
             } catch (Exception e) {
                 log.info(INFO, room.getId(), room.getDeletedAt());
             }

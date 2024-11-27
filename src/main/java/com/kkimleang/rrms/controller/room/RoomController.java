@@ -3,16 +3,14 @@ package com.kkimleang.rrms.controller.room;
 import com.kkimleang.rrms.annotation.*;
 import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.*;
-import com.kkimleang.rrms.payload.request.room.CreateRoomRequest;
-import com.kkimleang.rrms.payload.response.room.RoomResponse;
-import com.kkimleang.rrms.service.room.RoomService;
+import com.kkimleang.rrms.payload.request.room.*;
+import com.kkimleang.rrms.payload.response.room.*;
+import com.kkimleang.rrms.service.room.*;
 import com.kkimleang.rrms.service.user.*;
-
 import java.util.*;
-
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.extern.slf4j.*;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -35,6 +33,25 @@ public class RoomController {
         } catch (Exception e) {
             log.error("Failed to create room {}", e.getMessage(), e);
             return Response.<RoomResponse>exception()
+                    .setErrors(e.getMessage());
+        }
+    }
+
+    @GetMapping("/all")
+    public Response<List<RoomResponse>> getAllRooms(
+            @CurrentUser CustomUserDetails user,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        try {
+            List<RoomResponse> roomResponses = roomService.getPagingRooms(user, page, size);
+            return Response.<List<RoomResponse>>ok()
+                    .setPayload(roomResponses);
+        } catch (ResourceNotFoundException e) {
+            return Response.<List<RoomResponse>>notFound()
+                    .setErrors(e.getMessage());
+        } catch (Exception e) {
+            return Response.<List<RoomResponse>>exception()
                     .setErrors(e.getMessage());
         }
     }

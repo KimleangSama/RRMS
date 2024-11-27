@@ -53,7 +53,7 @@ public class PropertyService {
 
     @Cacheable(value = "properties")
     @Transactional
-    public List<PropertyResponse> getPagingProperties(int page, int size) {
+    public List<PropertyResponse> getPagingProperties(CustomUserDetails user, int page, int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<Property> properties = propertyRepository.findAll(pageable);
@@ -61,7 +61,10 @@ public class PropertyService {
                 throw new ResourceNotFoundException(RESOURCE, "of size " + size + " at page " + page, properties);
             }
             List<Property> propertyList = properties.getContent();
-            return PropertyResponse.fromProperties(propertyList);
+            if (user == null || user.getUser() == null) {
+                return PropertyResponse.fromProperties(propertyList);
+            }
+            return PropertyResponse.fromProperties(user.getUser(), propertyList);
         } catch (ResourceNotFoundException | ResourceForbiddenException e) {
             log.error(FAILED_GET_EXCEPTION, e.getMessage(), e);
             throw e;
