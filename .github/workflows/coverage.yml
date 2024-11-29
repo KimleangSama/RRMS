@@ -28,8 +28,16 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('pom.xml', 'pom.xml') || github.sha }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Run Docker-Compose
+        uses: hoverkraft-tech/compose-action@v2.0.2
+        with:
+          compose-file: "./docker-compose.yml"
+
       - name: Run Tests Coverage
         run: mvn -B test verify --file pom.xml -Pcoverage
+
+      - name: Chown Data Folder
+        run: sudo chown -R $USER:$USER ./data
 
       - name: JaCoCo Report
         id: jacoco-report
