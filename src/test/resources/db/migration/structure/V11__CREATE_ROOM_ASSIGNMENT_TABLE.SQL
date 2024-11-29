@@ -8,15 +8,10 @@ create table if not exists room_assignments
     deleted_by        uuid,
     updated_at        timestamp(6) with time zone,
     updated_by        uuid,
-    actual_end_date   timestamp(6),
     assignment_date   timestamp(6)     not null,
-    expected_end_date timestamp(6)     not null,
+    expected_end_date timestamp(6),
     remark            oid              not null,
     rental_price      double precision not null,
-    rental_status     varchar(255)     not null
-        constraint room_assignments_rental_status_check
-            check ((rental_status)::text = ANY
-                   ((ARRAY ['AVAILABLE'::character varying, 'RENTED'::character varying, 'RESERVED'::character varying, 'UNAVAILABLE'::character varying])::text[])),
     room_id           uuid             not null
         constraint fkt96wkyclodjlrg52xftxyve1h
             references rooms,

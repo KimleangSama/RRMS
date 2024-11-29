@@ -1,17 +1,16 @@
 package com.kkimleang.rrms.controller;
 
 
-import com.kkimleang.rrms.payload.Response;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
-import java.util.HashSet;
-import java.util.Set;
+import com.kkimleang.rrms.payload.*;
+import java.util.*;
+import lombok.extern.slf4j.*;
+import org.hibernate.exception.*;
+import org.springframework.dao.*;
+import org.springframework.security.authentication.*;
+import org.springframework.web.bind.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.*;
+import org.springframework.web.multipart.*;
 
 @Slf4j
 @RestControllerAdvice
@@ -42,5 +41,15 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public Response<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
         return Response.badRequest().setErrors("File size is too large!");
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public Response<Object> handleConstraintViolationException(ConstraintViolationException ex) {
+        return Response.duplicateEntity().setErrors(ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public Response<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return Response.badRequest().setErrors(ex.getMessage());
     }
 }

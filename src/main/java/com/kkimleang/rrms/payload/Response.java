@@ -33,6 +33,13 @@ public class Response<T> implements Serializable {
         return response;
     }
 
+    public static <T> Response<T> notAcceptable() {
+        Response<T> response = new Response<>();
+        response.setStatus(Status.NOT_ACCEPTABLE);
+        response.setStatusCode(406);
+        return response;
+    }
+
     public static <T> Response<T> ok() {
         Response<T> response = new Response<>();
         response.setStatus(Status.OK);
@@ -106,7 +113,7 @@ public class Response<T> implements Serializable {
     }
 
     public enum Status {
-        GENERATION_NOT_AVAILABLE, OK, BAD_REQUEST, UNAUTHORIZED, VALIDATION_EXCEPTION, EXCEPTION, WRONG_CREDENTIALS, ACCESS_DENIED, NOT_FOUND, CREATED, DUPLICATE_ENTITY
+        GENERATION_NOT_AVAILABLE, NOT_ACCEPTABLE, OK, BAD_REQUEST, UNAUTHORIZED, VALIDATION_EXCEPTION, EXCEPTION, WRONG_CREDENTIALS, ACCESS_DENIED, NOT_FOUND, CREATED, DUPLICATE_ENTITY
     }
 
     @Getter

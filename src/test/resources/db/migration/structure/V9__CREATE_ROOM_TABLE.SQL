@@ -12,7 +12,7 @@ create table if not exists rooms
     available_status varchar(255)     not null
         constraint rooms_available_status_check
             check ((available_status)::text = ANY
-                   ((ARRAY ['AVAILABLE'::character varying, 'NOT_AVAILABLE'::character varying, 'RESERVED'::character varying, 'BOOKED'::character varying, 'CANCELLED'::character varying, 'CHECKED_IN'::character varying, 'CHECKED_OUT'::character varying, 'PENALIZED'::character varying, 'CLOSED'::character varying, 'MAINTENANCE'::character varying])::text[])),
+                   ((ARRAY ['AVAILABLE'::character varying, 'ASSIGNED'::character varying, 'BOOKED'::character varying, 'CLOSED'::character varying, 'MAINTENANCE'::character varying])::text[])),
     rental_price     double precision not null,
     room_floor       integer          not null,
     room_number      varchar(255)     not null,

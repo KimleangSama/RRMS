@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Modifying
     @Query("UPDATE User u SET u.verifyCode = :nullValue WHERE u.id = :id")
     void updateVerifyCode(UUID id, Object nullValue);
+
+    Optional<User> findByAssignmentCode(String assignmentCode);
 }

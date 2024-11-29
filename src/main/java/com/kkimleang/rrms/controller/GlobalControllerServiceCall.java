@@ -1,12 +1,11 @@
 package com.kkimleang.rrms.controller;
 
-import com.kkimleang.rrms.exception.ResourceDeletionException;
-import com.kkimleang.rrms.exception.ResourceDuplicationException;
-import com.kkimleang.rrms.exception.ResourceForbiddenException;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.payload.Response;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.*;
+import lombok.extern.slf4j.*;
+import org.hibernate.exception.*;
+import org.springframework.dao.*;
+import org.springframework.stereotype.*;
 
 @Slf4j
 @Component
@@ -24,9 +23,12 @@ public class GlobalControllerServiceCall {
         } catch (ResourceForbiddenException e) {
             log.error("{}: {}", errorMessage, e.getMessage(), e);
             return Response.<T>accessDenied().setErrors(e.getMessage());
-        } catch (ResourceDeletionException e) {
+        } catch (ResourceDeletionException | ConstraintViolationException | DataIntegrityViolationException e) {
             log.error("{}: {}", errorMessage, e.getMessage(), e);
             return Response.<T>badRequest().setErrors(e.getMessage());
+        } catch (RoomNotAvailableException e) {
+            log.error("{}: {}", errorMessage, e.getMessage(), e);
+            return Response.<T>notAcceptable().setErrors(e.getMessage());
         } catch (Exception e) {
             log.error("{}: {}", errorMessage, e.getMessage(), e);
             return Response.<T>exception().setErrors(e.getMessage());
