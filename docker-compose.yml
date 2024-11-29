@@ -1,0 +1,111 @@
+services:
+  postgresql:
+    image: postgres:latest
+    container_name: postgresql
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: redis
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    environment:
+      REDIS_USER: redis
+      REDIS_PASSWORD: redis
+    networks:
+      - backend
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    restart: on-failure
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - backend
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: on-failure
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: on-failure
+    command:
+      - --enable-feature=exemplar-storage
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    restart: on-failure
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yaml
+      - ./data/tempo:/tmp/tempo
+    ports:
+      - "3110:3100"  # Tempo
+      - "9411:9411" # zipkin
+    networks:
+      - monitoring
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: on-failure
+    volumes:
+      - ./docker/grafana:/etc/grafana/provisioning/datasources
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3300:3000"
+    networks:
+      - monitoring
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: on-failure
+    command:
+      - --config.file=/etc/alertmanager/config.yml
+    volumes:
+      - ./docker/alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+volumes:
+  data:
+networks:
+  monitoring:
+    driver: bridge
+    name: monitoring
+  backend:
+    driver: bridge
+    name: backend

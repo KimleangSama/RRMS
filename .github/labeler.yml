@@ -1,0 +1,5 @@
+# Add 'test' label
+test:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file: [ src/test/java/**/* ]

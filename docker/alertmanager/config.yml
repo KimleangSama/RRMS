@@ -1,0 +1,28 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['telegram']
+  receiver: "critical-alerts"
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+
+receivers:
+  - name: "critical-alerts"
+    telegram_configs:
+      - bot_token: "invoked"
+        chat_id: 712381319
+        api_url: https://api.telegram.org
+        message: "{{ range .Alerts }} 🔥 Alert: {{ .Annotations.summary }}\nDescription: {{ .Annotations.description }}\nSeverity: {{ .Labels.severity }}\n{{ end }}"
+
+  - name: "info-alerts"
+    telegram_configs:
+      - bot_token: "invoked"
+        chat_id: 712381319
+        api_url: https://api.telegram.org
+        message: "{{ range .Alerts }} 🔔 Alert: {{ .Annotations.summary }}\nDescription: {{ .Annotations.description }}\nSeverity: {{ .Labels.severity }}\n{{ end }}"
