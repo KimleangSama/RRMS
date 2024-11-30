@@ -1,29 +1,20 @@
 package com.kkimleang.rrms.service.room;
 
-import com.kkimleang.rrms.entity.Room;
-import com.kkimleang.rrms.entity.RoomAssignment;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.enums.room.AvailableStatus;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.exception.RoomNotAvailableException;
-import com.kkimleang.rrms.exception.TenantAlreadyAssignedException;
-import com.kkimleang.rrms.payload.request.mapper.RoomAssignmentMapper;
-import com.kkimleang.rrms.payload.request.room.EditAvailableRequest;
-import com.kkimleang.rrms.payload.request.room.RoomAssignmentRequest;
-import com.kkimleang.rrms.payload.response.room.RoomAssignmentResponse;
-import com.kkimleang.rrms.repository.room.RoomAssignmentRepository;
-import com.kkimleang.rrms.repository.user.UserRepository;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.UUID;
-
-import static com.kkimleang.rrms.util.PrivilegeChecker.validateUser;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.enums.room.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.request.mapper.*;
+import com.kkimleang.rrms.payload.request.room.*;
+import com.kkimleang.rrms.payload.response.room.*;
+import com.kkimleang.rrms.repository.room.*;
+import com.kkimleang.rrms.repository.user.*;
+import com.kkimleang.rrms.service.user.*;
+import static com.kkimleang.rrms.util.PrivilegeChecker.*;
+import jakarta.transaction.*;
+import java.util.*;
+import lombok.*;
+import org.springframework.cache.annotation.*;
+import org.springframework.stereotype.*;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +38,7 @@ public class RoomAssignmentService {
         // Create and save assignment
         RoomAssignment assignment = createRoomAssignment(request, room, tenant);
         updateRoomStatus(user, room.getId(), AvailableStatus.ASSIGNED);
+        assignment.setCreatedBy(user.getUser().getId());
         return RoomAssignmentResponse.fromRoomAssignment(tenant, assignment);
     }
 

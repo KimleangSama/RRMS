@@ -39,17 +39,26 @@ jobs:
       - name: Chown Data Folder
         run: sudo chown -R $USER:$USER ./data
 
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: |
+            ${{ github.workspace }}/target/site/jacoco/jacoco.xml
+            ${{ github.workspace }}/target/site/jacoco/index.html
+
       - name: JaCoCo Report
         id: jacoco-report
         uses: Madrapps/jacoco-report@v1.7.1
         with:
-          title: '# :lobster: Coverage Report'
-          paths: | 
-            target/site/jacoco/jacoco.xml
-            target/surefire-reports/**.xml
+          paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 40
+          min-coverage-overall: 80
           min-coverage-changed-files: 60
+          title: '# :recycle: Coverage Report'
+          update-comment: true
+          pass-emoji: ':green_circle:'
+          fail-emoji: ':red_circle:'
 
 
 

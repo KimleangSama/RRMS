@@ -1,12 +1,10 @@
 package com.kkimleang.rrms.payload.request.mapper;
 
-import com.kkimleang.rrms.config.ModelMapperConfig;
-import com.kkimleang.rrms.entity.Room;
-import com.kkimleang.rrms.payload.request.room.CreateRoomRequest;
-import com.kkimleang.rrms.payload.request.room.EditAvailableRequest;
-import com.kkimleang.rrms.payload.request.room.EditRoomRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
+import com.kkimleang.rrms.config.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.payload.request.room.*;
+import lombok.extern.slf4j.*;
+import org.modelmapper.*;
 
 @Slf4j
 public class RoomMapper {
@@ -26,7 +24,6 @@ public class RoomMapper {
 
     private static <T> void mapRequest(Room room, T request, String operation) {
         if (request == null) return;
-
         try {
             modelMapper.map(request, room);
         } catch (Exception e) {

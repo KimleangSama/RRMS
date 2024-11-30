@@ -1,21 +1,17 @@
 package com.kkimleang.rrms.controller.room;
 
-import com.kkimleang.rrms.annotation.CurrentUser;
-import com.kkimleang.rrms.controller.GlobalControllerServiceCall;
-import com.kkimleang.rrms.payload.Response;
-import com.kkimleang.rrms.payload.request.room.CreateRoomRequest;
-import com.kkimleang.rrms.payload.request.room.EditAvailableRequest;
-import com.kkimleang.rrms.payload.request.room.EditRoomRequest;
-import com.kkimleang.rrms.payload.response.room.RoomResponse;
-import com.kkimleang.rrms.service.room.RoomService;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.kkimleang.rrms.annotation.*;
+import com.kkimleang.rrms.controller.*;
+import com.kkimleang.rrms.payload.*;
+import com.kkimleang.rrms.payload.request.room.*;
+import com.kkimleang.rrms.payload.response.room.*;
+import com.kkimleang.rrms.service.room.*;
+import com.kkimleang.rrms.service.user.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -42,6 +38,16 @@ public class RoomController {
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         return service.executeServiceCall(() -> roomService.getRooms(user, null, page, size),
+                "Failed to get all room");
+    }
+
+    @GetMapping("/all/open")
+    public Response<List<RoomResponse>> getAllAvailableRooms(
+            @CurrentUser CustomUserDetails user,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        return service.executeServiceCall(() -> roomService.getOpenRooms(user, page, size),
                 "Failed to get all room");
     }
 
