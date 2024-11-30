@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -39,5 +41,13 @@ public class RoomAssignmentResponse {
             response.setHasPrivilege(true);
         }
         return response;
+    }
+
+    public static List<RoomAssignmentResponse> fromRoomAssignments(User user, List<RoomAssignment> roomAssignments) {
+        List<RoomAssignmentResponse> responses = new ArrayList<>();
+        for (RoomAssignment assignment : roomAssignments) {
+            responses.add(fromRoomAssignment(user, assignment));
+        }
+        return responses;
     }
 }

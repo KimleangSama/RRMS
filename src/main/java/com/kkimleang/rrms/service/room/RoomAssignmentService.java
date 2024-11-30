@@ -20,6 +20,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.kkimleang.rrms.util.PrivilegeChecker.validateUser;
@@ -103,5 +104,14 @@ public class RoomAssignmentService {
     private RoomAssignment findAssignmentById(UUID id) {
         return roomAssignmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id));
+    }
+
+    @Transactional
+    public List<RoomAssignmentResponse> getRoomAssignmentsByPropertyId(CustomUserDetails user, UUID id) {
+        validateUser(user, "get room assignments by property id");
+        List<Room> rooms = roomService.findRoomsByPropertyId(id);
+        List<RoomAssignment> roomAssignments = roomAssignmentRepository.findRoomAssignmentsByRoomIn(rooms)
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "property id " + id));
+        return RoomAssignmentResponse.fromRoomAssignments(user.getUser(), roomAssignments);
     }
 }

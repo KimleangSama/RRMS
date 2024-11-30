@@ -163,4 +163,8 @@ public class RoomService {
     public Room findByRoomId(UUID roomId) {
         return roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", roomId.toString()));
     }
+
+    public List<Room> findRoomsByPropertyId(UUID id) {
+        return roomRepository.findByPropertyId(id);
+    }
 }

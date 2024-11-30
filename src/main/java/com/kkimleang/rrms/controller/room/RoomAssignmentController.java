@@ -10,6 +10,7 @@ import com.kkimleang.rrms.service.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,5 +47,14 @@ public class RoomAssignmentController {
     ) {
         return service.executeServiceCall(() -> roomAssignmentService.getRoomAssignmentByTenantId(user, id),
                 "Failed to get room assignment by tenant id");
+    }
+
+    @GetMapping("/of-property/{id}")
+    public Response<List<RoomAssignmentResponse>> getRoomAssignmentsByPropertyId(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable UUID id
+    ) {
+        return service.executeServiceCall(() -> roomAssignmentService.getRoomAssignmentsByPropertyId(user, id),
+                "Failed to get room assignment by property id");
     }
 }
