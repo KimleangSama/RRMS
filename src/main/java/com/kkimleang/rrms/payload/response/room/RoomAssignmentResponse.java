@@ -1,12 +1,14 @@
 package com.kkimleang.rrms.payload.response.room;
 
-import com.kkimleang.rrms.entity.*;
-import com.kkimleang.rrms.payload.response.user.*;
+import com.kkimleang.rrms.entity.RoomAssignment;
+import com.kkimleang.rrms.entity.User;
+import com.kkimleang.rrms.payload.response.user.TenantResponse;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.time.*;
+import java.time.LocalDate;
 import java.util.UUID;
-
-import lombok.*;
 
 @Getter
 @Setter

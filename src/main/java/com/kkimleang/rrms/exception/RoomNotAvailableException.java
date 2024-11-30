@@ -1,8 +1,8 @@
 package com.kkimleang.rrms.exception;
 
-import lombok.*;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Getter
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

@@ -1,10 +1,15 @@
 package com.kkimleang.rrms.payload.response.user;
 
-import com.kkimleang.rrms.config.*;
-import com.kkimleang.rrms.entity.*;
-import java.util.*;
-import lombok.*;
-import org.modelmapper.*;
+import com.kkimleang.rrms.config.ModelMapperConfig;
+import com.kkimleang.rrms.entity.User;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.modelmapper.ModelMapper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter

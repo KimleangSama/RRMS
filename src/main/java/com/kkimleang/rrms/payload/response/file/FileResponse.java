@@ -1,12 +1,19 @@
 package com.kkimleang.rrms.payload.response.file;
 
-import com.kkimleang.rrms.entity.*;
-import com.kkimleang.rrms.enums.file.*;
-import com.kkimleang.rrms.exception.*;
-import java.io.*;
-import java.time.*;
-import java.util.*;
-import lombok.*;
+import com.kkimleang.rrms.entity.PropRoomPicture;
+import com.kkimleang.rrms.entity.User;
+import com.kkimleang.rrms.enums.file.FileAccessibleType;
+import com.kkimleang.rrms.enums.file.FileLocationType;
+import com.kkimleang.rrms.exception.ResourceNotFoundException;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter

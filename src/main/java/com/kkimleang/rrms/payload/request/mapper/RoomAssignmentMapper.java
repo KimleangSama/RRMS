@@ -1,10 +1,12 @@
 package com.kkimleang.rrms.payload.request.mapper;
 
-import com.kkimleang.rrms.config.*;
-import com.kkimleang.rrms.entity.*;
-import com.kkimleang.rrms.payload.request.room.*;
-import lombok.extern.slf4j.*;
-import org.modelmapper.*;
+import com.kkimleang.rrms.config.ModelMapperConfig;
+import com.kkimleang.rrms.entity.Room;
+import com.kkimleang.rrms.entity.RoomAssignment;
+import com.kkimleang.rrms.entity.User;
+import com.kkimleang.rrms.payload.request.room.RoomAssignmentRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 
 @Slf4j
 public class RoomAssignmentMapper {

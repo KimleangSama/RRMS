@@ -1,6 +1,6 @@
 package com.kkimleang.rrms.entity;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.kkimleang.rrms.enums.file.FileAccessibleType;
 import com.kkimleang.rrms.enums.file.FileLocationType;
 import jakarta.persistence.*;

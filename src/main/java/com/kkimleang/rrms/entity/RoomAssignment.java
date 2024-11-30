@@ -1,11 +1,14 @@
 package com.kkimleang.rrms.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import java.io.*;
-import java.time.*;
-import lombok.*;
-import org.springframework.data.redis.core.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.redis.core.RedisHash;
+
+import java.io.Serial;
+import java.time.LocalDate;
 
 @RedisHash("RoomAssignments")
 @Getter

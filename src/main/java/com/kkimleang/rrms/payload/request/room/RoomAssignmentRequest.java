@@ -1,8 +1,11 @@
 package com.kkimleang.rrms.payload.request.room;
 
-import java.time.*;
-import java.util.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter

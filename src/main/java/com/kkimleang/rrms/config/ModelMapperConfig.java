@@ -1,9 +1,8 @@
 package com.kkimleang.rrms.config;
 
 import org.modelmapper.Condition;
-import org.modelmapper.*;
-import org.modelmapper.convention.*;
-import org.springframework.context.annotation.*;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 
 public class ModelMapperConfig {
     private ModelMapperConfig() {

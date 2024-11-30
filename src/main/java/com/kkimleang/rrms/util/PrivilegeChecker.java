@@ -1,10 +1,12 @@
 package com.kkimleang.rrms.util;
 
-import com.kkimleang.rrms.entity.*;
-import com.kkimleang.rrms.exception.*;
-import com.kkimleang.rrms.service.user.*;
-import java.util.*;
-import lombok.extern.slf4j.*;
+import com.kkimleang.rrms.entity.Role;
+import com.kkimleang.rrms.entity.User;
+import com.kkimleang.rrms.exception.ResourceForbiddenException;
+import com.kkimleang.rrms.service.user.CustomUserDetails;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.UUID;
 
 @Slf4j
 public class PrivilegeChecker {

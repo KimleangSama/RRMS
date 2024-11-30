@@ -1,6 +1,6 @@
 package com.kkimleang.rrms.entity;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kkimleang.rrms.enums.room.AvailableStatus;
 import com.kkimleang.rrms.enums.room.RoomSize;
 import com.kkimleang.rrms.enums.room.RoomType;

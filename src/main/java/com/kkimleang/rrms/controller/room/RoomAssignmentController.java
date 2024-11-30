@@ -1,14 +1,13 @@
 package com.kkimleang.rrms.controller.room;
 
-import com.kkimleang.rrms.annotation.*;
-import com.kkimleang.rrms.controller.*;
-import com.kkimleang.rrms.payload.*;
-import com.kkimleang.rrms.payload.request.room.*;
-import com.kkimleang.rrms.payload.response.room.*;
-import com.kkimleang.rrms.service.room.*;
-import com.kkimleang.rrms.service.user.*;
-import lombok.*;
-import org.springframework.security.access.prepost.*;
+import com.kkimleang.rrms.annotation.CurrentUser;
+import com.kkimleang.rrms.controller.GlobalControllerServiceCall;
+import com.kkimleang.rrms.payload.Response;
+import com.kkimleang.rrms.payload.request.room.RoomAssignmentRequest;
+import com.kkimleang.rrms.payload.response.room.RoomAssignmentResponse;
+import com.kkimleang.rrms.service.room.RoomAssignmentService;
+import com.kkimleang.rrms.service.user.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
