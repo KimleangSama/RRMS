@@ -7,4 +7,5 @@ import org.springframework.stereotype.*;
 
 @Repository
 public interface RoomAssignmentRepository extends JpaRepository<RoomAssignment, UUID> {
+    Optional<RoomAssignment> findRoomAssignmentByUserId(UUID id);
 }
