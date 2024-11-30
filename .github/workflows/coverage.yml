@@ -44,8 +44,7 @@ jobs:
         with:
           name: jacoco-report
           path: |
-            ${{ github.workspace }}/target/site/jacoco/jacoco.xml
-            ${{ github.workspace }}/target/site/jacoco/index.html
+            ${{ github.workspace }}/target/site/jacoco/
 
       - name: JaCoCo Report
         id: jacoco-report
