@@ -11,7 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface RoomAssignmentRepository extends JpaRepository<RoomAssignment, UUID> {
-    Optional<RoomAssignment> findRoomAssignmentByUserId(UUID id);
+    Optional<RoomAssignment> findRoomAssignmentByUserId(UUID userId);
+
+    Optional<RoomAssignment> findRoomAssignmentByRoomId(UUID roomId);
 
     Optional<List<RoomAssignment>> findRoomAssignmentsByRoomIn(List<Room> rooms);
 }

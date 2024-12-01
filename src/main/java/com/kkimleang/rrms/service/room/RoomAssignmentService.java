@@ -12,7 +12,6 @@ import com.kkimleang.rrms.service.user.*;
 
 import static com.kkimleang.rrms.util.PrivilegeChecker.*;
 
-import com.kkimleang.rrms.util.NullOrDeletedEntityValidator;
 import jakarta.transaction.*;
 
 import java.time.Instant;
@@ -128,5 +127,15 @@ public class RoomAssignmentService {
     @Cacheable(value = "assignment", key = "#roomAssignmentId")
     public Optional<RoomAssignment> findById(UUID roomAssignmentId) {
         return roomAssignmentRepository.findById(roomAssignmentId);
+    }
+
+    public RoomAssignment findByRoomId(UUID roomId) {
+        return roomAssignmentRepository.findRoomAssignmentByRoomId(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "room id " + roomId));
+    }
+
+    public List<RoomAssignment> findRoomAssignmentsByRooms(List<Room> rooms) {
+        return roomAssignmentRepository.findRoomAssignmentsByRoomIn(rooms)
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "rooms"));
     }
 }

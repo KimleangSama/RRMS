@@ -22,6 +22,34 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
     private final GlobalControllerServiceCall service;
 
+    @GetMapping("/of-room/{roomId}")
+    public Response<List<InvoiceResponse>> getInvoicesOfRoom(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable("roomId") UUID roomId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        return service.executeServiceCall(() -> {
+            List<InvoiceResponse> response = invoiceService.getInvoicesOfRoom(user, roomId, page, size);
+            log.info("User {} fetched invoices of room {}", user.getUsername(), roomId);
+            return response;
+        }, "Failed to fetch invoices of room");
+    }
+
+    @GetMapping("/of-room-assignment/{roomAssignmentId}")
+    public Response<List<InvoiceResponse>> getInvoicesOfRoomAssignment(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable("roomAssignmentId") UUID roomAssignmentId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        return service.executeServiceCall(() -> {
+            List<InvoiceResponse> response = invoiceService.getInvoicesOfRoomAssignment(user, roomAssignmentId, page, size);
+            log.info("User {} fetched invoices of room assignment {}", user.getUsername(), roomAssignmentId);
+            return response;
+        }, "Failed to fetch invoices of room assignment");
+    }
+
     @GetMapping("/of-property/{propertyId}")
     public Response<List<InvoiceResponse>> getInvoicesOfProperty(
             @CurrentUser CustomUserDetails user,
@@ -29,7 +57,11 @@ public class InvoiceController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        return null;
+        return service.executeServiceCall(() -> {
+            List<InvoiceResponse> response = invoiceService.getInvoicesOfProperty(user, propertyId, page, size);
+            log.info("User {} fetched invoices of property {}", user.getUsername(), propertyId);
+            return response;
+        }, "Failed to fetch invoices of room assignment");
     }
 
     @PostMapping("/create")

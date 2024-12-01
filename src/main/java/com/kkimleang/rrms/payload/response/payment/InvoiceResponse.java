@@ -13,11 +13,15 @@ import com.kkimleang.rrms.util.NullOrDeletedEntityValidator;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
 @ToString
@@ -69,5 +73,17 @@ public class InvoiceResponse {
     public static InvoiceResponse fromInvoice(User user, Invoice invoice) {
         boolean hasPrivilege = user.getId().equals(invoice.getCreatedBy());
         return mapToResponse(invoice, hasPrivilege);
+    }
+
+    public static List<InvoiceResponse> fromInvoices(User user, List<Invoice> invoices) {
+        List<InvoiceResponse> responses = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            try {
+                responses.add(fromInvoice(user, invoice));
+            } catch (Exception e) {
+                log.debug("Failed to map invoice to response: {}", e.getMessage());
+            }
+        }
+        return responses;
     }
 }
