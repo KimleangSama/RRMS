@@ -3,6 +3,7 @@ package com.kkimleang.rrms.payload.response.room;
 import com.kkimleang.rrms.entity.Room;
 import com.kkimleang.rrms.entity.User;
 import com.kkimleang.rrms.exception.ResourceDeletionException;
+import com.kkimleang.rrms.exception.ResourceNotFoundException;
 import com.kkimleang.rrms.payload.response.file.FileResponse;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,7 +71,7 @@ public class RoomResponse {
 
     private static void validateRoom(Room room) {
         if (room == null) {
-            throw new IllegalArgumentException("Room cannot be null");
+            throw new ResourceNotFoundException("Room", "id");
         }
         if (room.getDeletedBy() != null && room.getDeletedAt() != null) {
             throw new ResourceDeletionException("Room", room.getDeletedAt().toString());

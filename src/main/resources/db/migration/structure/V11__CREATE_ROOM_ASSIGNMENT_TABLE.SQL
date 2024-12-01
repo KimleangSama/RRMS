@@ -15,11 +15,7 @@ create table if not exists room_assignments
     room_id           uuid             not null
         constraint fkt96wkyclodjlrg52xftxyve1h
             references rooms,
-    user_id           uuid             not null
+    user_id           uuid
         constraint fks6xh6yp65mq50p2rlayu6gocp
-            references users,
-    constraint ukbnxowheu8dbk8j970q11k6ouq
-        unique (assignment_date, room_id),
-    constraint ukvq2p4joy3p8rly2oljrr8uxm
-        unique (room_id, user_id)
+            references users
 );

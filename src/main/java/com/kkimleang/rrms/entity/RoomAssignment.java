@@ -15,10 +15,7 @@ import java.time.LocalDate;
 @Setter
 @ToString
 @Entity
-@Table(name = "room_assignments", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"assignment_date", "room_id"}),
-        @UniqueConstraint(columnNames = {"room_id", "user_id"}),
-})
+@Table(name = "room_assignments")
 public class RoomAssignment extends BaseEntityAudit {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -38,10 +35,10 @@ public class RoomAssignment extends BaseEntityAudit {
     private String remark;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id")
     private Room room;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 }

@@ -8,6 +8,7 @@ create table if not exists payments
     deleted_by     uuid,
     updated_at     timestamp(6) with time zone,
     updated_by     uuid,
+    expected_amount    double precision,
     amount_paid    double precision not null,
     payment_date   timestamp(6)     not null,
     payment_method smallint         not null

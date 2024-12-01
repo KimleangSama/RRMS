@@ -9,16 +9,14 @@ import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serial;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RedisHash("Invoice")
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "invoices", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"room_assignment_id", "invoice_date"}),
-        @UniqueConstraint(columnNames = {"room_assignment_id", "due_date"}),
-})
+@Table(name = "invoices")
 public class Invoice extends BaseEntityAudit {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -29,21 +27,17 @@ public class Invoice extends BaseEntityAudit {
     @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
-    @Column(name = "amount_paid", nullable = false)
+    @Column(name = "amount_paid")
     private Double amountPaid;
 
     @Column(name = "amount_due", nullable = false)
     private Double amountDue;
 
-    @Column(name = "discount", nullable = false)
+    @Column(name = "discount")
     private Double discount;
 
     @Column(name = "total_amount", nullable = false)
     private Double totalAmount;
-
-    @Lob
-    @Column(name = "description", nullable = false)
-    private String description;
 
     @Lob
     @Column(name = "remark", nullable = false)
@@ -55,8 +49,4 @@ public class Invoice extends BaseEntityAudit {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_assignment_id", nullable = false)
     private RoomAssignment roomAssignment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 }

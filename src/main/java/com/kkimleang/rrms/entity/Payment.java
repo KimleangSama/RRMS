@@ -24,6 +24,9 @@ public class Payment extends BaseEntityAudit {
     @Column(name = "payment_date", nullable = false)
     private LocalDateTime paymentDate;
 
+    @Column(name = "expected_amount")
+    private Double expectedAmount;
+
     @Column(name = "amount_paid", nullable = false)
     private Double amountPaid;
 

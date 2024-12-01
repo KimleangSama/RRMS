@@ -9,9 +9,15 @@ import com.kkimleang.rrms.payload.response.room.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.repository.user.*;
 import com.kkimleang.rrms.service.user.*;
+
 import static com.kkimleang.rrms.util.PrivilegeChecker.*;
+
+import com.kkimleang.rrms.util.NullOrDeletedEntityValidator;
 import jakarta.transaction.*;
+
+import java.time.Instant;
 import java.util.*;
+
 import lombok.*;
 import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.*;
@@ -36,9 +42,8 @@ public class RoomAssignmentService {
         Room room = roomService.findByRoomId(request.getRoomId());
         validateRoomAvailability(room);
         // Create and save assignment
-        RoomAssignment assignment = createRoomAssignment(request, room, tenant);
+        RoomAssignment assignment = createRoomAssignment(request, room, user.getUser().getId(), tenant);
         updateRoomStatus(user, room.getId(), AvailableStatus.ASSIGNED);
-        assignment.setCreatedBy(user.getUser().getId());
         return RoomAssignmentResponse.fromRoomAssignment(tenant, assignment);
     }
 
@@ -47,9 +52,13 @@ public class RoomAssignmentService {
     public RoomAssignmentResponse deleteRoomAssignment(CustomUserDetails user, UUID id) {
         validateUser(user, "delete room assignment");
         RoomAssignment assignment = findAssignmentById(id);
-        roomAssignmentRepository.delete(assignment);
+        RoomAssignmentResponse response = RoomAssignmentResponse.fromRoomAssignment(user.getUser(), assignment);
         updateRoomStatus(user, assignment.getRoom().getId(), AvailableStatus.AVAILABLE);
-        return RoomAssignmentResponse.fromRoomAssignment(user.getUser(), assignment);
+        assignment.setDeletedBy(user.getUser().getId());
+        assignment.setDeletedAt(Instant.now());
+        assignment.setUser(null);
+        roomAssignmentRepository.save(assignment);
+        return response;
     }
 
     @Cacheable(value = CACHE_NAME, key = "#id")
@@ -70,18 +79,27 @@ public class RoomAssignmentService {
     private void validateTenantNotAssigned(UUID tenantId) {
         roomAssignmentRepository.findRoomAssignmentByUserId(tenantId)
                 .ifPresent(assignment -> {
-                    throw new TenantAlreadyAssignedException("Tenant is already assigned to room: " + assignment.getRoom().getId());
+                    // Not yet deleted
+                    if (assignment.getDeletedBy() == null && assignment.getDeletedAt() == null) {
+                        throw new TenantAlreadyAssignedException("Tenant is already assigned to room: " + assignment.getRoom().getId());
+                    }
                 });
     }
 
     private void validateRoomAvailability(Room room) {
-        if (room.getAvailableStatus() == AvailableStatus.ASSIGNED) {
+        if (room.getAvailableStatus() != AvailableStatus.ASSIGNED && room.getAvailableStatus() != AvailableStatus.AVAILABLE) {
             throw new RoomNotAvailableException("room is already " + room.getAvailableStatus());
         }
     }
 
-    private RoomAssignment createRoomAssignment(RoomAssignmentRequest request, Room room, User tenant) {
+    private RoomAssignment createRoomAssignment(
+            RoomAssignmentRequest request,
+            Room room,
+            UUID createBy,
+            User tenant
+    ) {
         RoomAssignment assignment = new RoomAssignment();
+        assignment.setCreatedBy(createBy);
         RoomAssignmentMapper.createRAFromRARequest(assignment, request, room, tenant);
         return roomAssignmentRepository.save(assignment);
     }
@@ -105,5 +123,10 @@ public class RoomAssignmentService {
         List<RoomAssignment> roomAssignments = roomAssignmentRepository.findRoomAssignmentsByRoomIn(rooms)
                 .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "property id " + id));
         return RoomAssignmentResponse.fromRoomAssignments(user.getUser(), roomAssignments);
+    }
+
+    @Cacheable(value = "assignment", key = "#roomAssignmentId")
+    public Optional<RoomAssignment> findById(UUID roomAssignmentId) {
+        return roomAssignmentRepository.findById(roomAssignmentId);
     }
 }

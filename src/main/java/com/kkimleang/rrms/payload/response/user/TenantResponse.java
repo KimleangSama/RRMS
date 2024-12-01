@@ -20,6 +20,7 @@ public class TenantResponse {
     private String email;
     private String phoneNumber;
     private String gender;
+    private String profession;
     private String profilePicture;
 
     private final static ModelMapper modelMapper = ModelMapperConfig.modelMapper();
@@ -31,6 +32,7 @@ public class TenantResponse {
         tenantResponse.setEmail(userResponse.getEmail());
         tenantResponse.setPhoneNumber(userResponse.getPhoneNumber());
         tenantResponse.setGender(userResponse.getGender());
+        tenantResponse.setProfession(userResponse.getProfession());
         tenantResponse.setProfilePicture(userResponse.getProfilePicture());
         return tenantResponse;
     }

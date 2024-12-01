@@ -43,6 +43,7 @@ create table if not exists users
     preferred_longitude    double precision,
     preferred_radius       double precision,
     profile_picture        varchar(255),
+    profession             varchar(255),
     provider               varchar(255) not null
         constraint users_provider_check
             check ((provider)::text = ANY

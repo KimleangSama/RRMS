@@ -12,6 +12,7 @@ public class EditBasicRequest {
     private String fullname;
     private Gender gender;
     private String dateOfBirth;
+    private String profession;
     private String profilePicture;
     private String preferredLanguage;
     private String preferredLocation;

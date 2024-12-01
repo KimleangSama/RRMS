@@ -23,6 +23,7 @@ public class UserResponse implements Serializable {
     private String email;
     private String gender;
     private String phoneNumber;
+    private String profession;
     private String profilePicture;
     private AuthProvider provider;
     private Set<RoleResponse> roles;
@@ -37,6 +38,7 @@ public class UserResponse implements Serializable {
         userResponse.setFullname(user.getFullname());
         userResponse.setGender(user.getGender().name());
         userResponse.setPhoneNumber(user.getPhoneNumber());
+        userResponse.setProfession(user.getProfession());
         userResponse.setProfilePicture(user.getProfilePicture());
         userResponse.setProvider(user.getProvider());
         userResponse.setRoles(RoleResponse.fromRoles(user.getRoles(), false));

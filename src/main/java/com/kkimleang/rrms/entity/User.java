@@ -92,6 +92,9 @@ public class User extends BaseEntityAudit {
     @Column(name = "address_proof")
     private String addressProof;
 
+    @Column(name = "profession")
+    private String profession;
+
     @Column(name = "preferred_language")
     private String preferredLanguage;
 
