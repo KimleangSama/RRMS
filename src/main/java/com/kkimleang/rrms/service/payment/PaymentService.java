@@ -33,7 +33,7 @@ public class PaymentService {
         Payment payment = createAndSavePayment(validUser, invoice, request);
         // Update invoice status
         updateInvoiceStatus(invoice, payment, validUser.getId());
-        return PaymentResponse.fromPayment(payment);
+        return PaymentResponse.fromPayment(validUser, payment);
     }
 
     private User validateUser(CustomUserDetails user) {
@@ -77,5 +77,13 @@ public class PaymentService {
             return InvoiceStatus.PARTIAL_PAID;
         }
         return InvoiceStatus.UNPAID;
+    }
+
+    @Transactional
+    public List<PaymentResponse> getPaymentsOfInvoiceId(CustomUserDetails user, UUID invoiceId) {
+        User validUser = validateUser(user);
+        Invoice invoice = findAndValidateInvoice(invoiceId);
+        List<Payment> payments = paymentRepository.findAllByInvoice(invoice);
+        return PaymentResponse.fromPayments(validUser, payments);
     }
 }

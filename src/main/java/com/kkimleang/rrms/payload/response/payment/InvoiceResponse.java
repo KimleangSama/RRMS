@@ -1,25 +1,15 @@
 package com.kkimleang.rrms.payload.response.payment;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.kkimleang.rrms.config.ModelMapperConfig;
-import com.kkimleang.rrms.entity.Invoice;
-import com.kkimleang.rrms.entity.Room;
-import com.kkimleang.rrms.entity.RoomAssignment;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.enums.room.InvoiceStatus;
-import com.kkimleang.rrms.exception.ResourceDeletionException;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.util.NullOrDeletedEntityValidator;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.*;
+import com.kkimleang.rrms.config.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.enums.room.*;
+import com.kkimleang.rrms.util.*;
+import java.time.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.modelmapper.*;
 
 @Slf4j
 @Getter
@@ -79,6 +69,7 @@ public class InvoiceResponse {
         List<InvoiceResponse> responses = new ArrayList<>();
         for (Invoice invoice : invoices) {
             try {
+                NullOrDeletedEntityValidator.validate(invoice, "Invoice");
                 responses.add(fromInvoice(user, invoice));
             } catch (Exception e) {
                 log.debug("Failed to map invoice to response: {}", e.getMessage());

@@ -6,6 +6,7 @@ import com.kkimleang.rrms.payload.request.mapper.*;
 import com.kkimleang.rrms.payload.request.payment.*;
 import com.kkimleang.rrms.payload.response.payment.*;
 import com.kkimleang.rrms.repository.payment.*;
+import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.room.*;
 import com.kkimleang.rrms.service.user.*;
 import com.kkimleang.rrms.util.*;
@@ -25,95 +26,196 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final RoomAssignmentService roomAssignmentService;
     private final RoomService roomService;
+    private final PropertyRepository propertyRepository;
 
-    @Cacheable(value = "invoices")
+    private static final int DEFAULT_CACHE_TTL = 3600; // 1 hour in seconds
+
+    @Cacheable(value = "invoices", key = "#request.roomAssignmentId")
     @Transactional
     public InvoiceResponse createInvoice(CustomUserDetails user, CreateInvoiceRequest request) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
-        RoomAssignment roomAssignment = roomAssignmentService.findById(request.getRoomAssignmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", request.getRoomAssignmentId()));
+        validateUser(user);
+        RoomAssignment roomAssignment = getRoomAssignmentById(request.getRoomAssignmentId());
+
         Invoice invoice = new Invoice();
-        invoice.setCreatedAt(Instant.now());
         invoice.setCreatedBy(user.getUser().getId());
         invoice.setRoomAssignment(roomAssignment);
+
         InvoiceMapper.createInvoiceFromInvoiceRequest(invoice, request);
-        invoice.setTotalAmount(getTotalAmount(invoice));
-        invoice = invoiceRepository.save(invoice);
-        return InvoiceResponse.fromInvoice(user.getUser(), invoice);
+        invoice.setTotalAmount(calculateTotalAmount(invoice));
+
+        return InvoiceResponse.fromInvoice(user.getUser(), invoiceRepository.save(invoice));
     }
 
-    @Cacheable(value = "invoices")
+    @Cacheable(value = "invoices", key = "'room_' + #roomId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfRoom(CustomUserDetails user, UUID roomId, int page, int size) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
-        List<RoomAssignment> roomAssignments = roomAssignmentService.findByRoomId(roomId);
-        NullOrDeletedEntityValidator.validate(roomAssignments, "Room Assignment");
-        Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, page, size);
+        validateUser(user);
+        Room room = validateAndGetRoom(roomId);
+        List<RoomAssignment> roomAssignments = validateAndGetRoomAssignments(roomId);
+        validateRoomAccess(user, room, roomId);
+        Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, PageRequest.of(page, size));
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
 
-    @Cacheable(value = "invoices")
+    /**
+     * Retrieves paginated invoices for a room assignment.
+     *
+     * @param user             Authenticated user details
+     * @param roomAssignmentId Room assignment identifier
+     * @param page             Page number
+     * @param size             Page size
+     * @return List of invoice responses
+     * @throws ResourceForbiddenException if user lacks access rights
+     * @throws ResourceNotFoundException  if room assignment not found
+     */
+    @Cacheable(value = "invoices", key = "'assignment_' + #roomAssignmentId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfRoomAssignment(CustomUserDetails user, UUID roomAssignmentId, int page, int size) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
-        RoomAssignment roomAssignment = roomAssignmentService.findById(roomAssignmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", roomAssignmentId));
-        NullOrDeletedEntityValidator.validate(roomAssignment, "Room Assignment");
-        Page<Invoice> invoices = findAllByRoomAssignmentId(roomAssignment.getId(), page, size);
+        validateUser(user);
+        RoomAssignment roomAssignment = validateAndGetRoomAssignment(roomAssignmentId);
+        List<RoomAssignment> roomAssignments = validateAndGetRoomAssignmentsForRoom(roomAssignment.getRoom().getId());
+        roomAssignments = roomAssignments.stream()
+                .filter(ra -> ra.getDeletedAt() == null && ra.getDeletedBy() == null)
+                .toList();
+        validateUserPrivileges(user, roomAssignments, roomAssignmentId);
+        RoomAssignment earliestAssignment = findEarliestValidAssignment(roomAssignments, roomAssignmentId);
+        Page<Invoice> invoices = invoiceRepository.findAllByRoomAssignmentInAndInvoiceDateIsAfter(
+                roomAssignments,
+                earliestAssignment.getAssignmentDate(),
+                PageRequest.of(page, size)
+        );
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
 
-    private Page<Invoice> findAllByRoomAssignmentId(UUID roomAssignmentId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return invoiceRepository.findAllByRoomAssignmentId(roomAssignmentId, pageable);
-    }
-
+    @Cacheable(value = "invoices", key = "'property_' + #propertyId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfProperty(CustomUserDetails user, UUID propertyId, int page, int size) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
+        validateUser(user);
+        Property property = validateAndGetProperty(propertyId);
+        validatePropertyAccess(user, property, propertyId);
         List<Room> rooms = roomService.findRoomsByPropertyId(propertyId);
         List<RoomAssignment> roomAssignments = roomAssignmentService.findRoomAssignmentsByRooms(rooms);
-        Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, page, size);
+        Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, PageRequest.of(page, size));
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
 
-    private Page<Invoice> findAllByRoomAssignments(List<RoomAssignment> roomAssignments, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return invoiceRepository.findAllByRoomAssignmentIn(roomAssignments, pageable);
-    }
-
+    @CachePut(value = "invoices", key = "#invoiceId")
     @Transactional
-    @CachePut(value = "invoices")
     public InvoiceResponse editInvoiceStatus(CustomUserDetails user, UUID invoiceId, EditInvoiceStatusRequest request) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
-        Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
-        NullOrDeletedEntityValidator.validate(invoice, "Invoice");
+        validateUser(user);
+        Invoice invoice = validateAndGetInvoice(invoiceId);
         InvoiceMapper.editInvoiceStatusFromEditInvoiceStatusRequest(invoice, request);
         invoice.setUpdatedAt(Instant.now());
         invoice.setUpdatedBy(user.getUser().getId());
-        invoice.setTotalAmount(getTotalAmount(invoice));
-        invoice = invoiceRepository.save(invoice);
-        return InvoiceResponse.fromInvoice(user.getUser(), invoice);
+        invoice.setTotalAmount(calculateTotalAmount(invoice));
+        return InvoiceResponse.fromInvoice(user.getUser(), invoiceRepository.save(invoice));
     }
 
-    private double getTotalAmount(Invoice invoice) {
+    @Cacheable(value = "invoices", key = "#invoiceId")
+    @Transactional
+    public Optional<Invoice> findById(UUID invoiceId) {
+        return invoiceRepository.findById(invoiceId);
+    }
+
+    // Private helper methods
+    private void validateUser(CustomUserDetails user) {
+        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
+    }
+
+    private RoomAssignment getRoomAssignmentById(UUID id) {
+        return roomAssignmentService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", id));
+    }
+
+    private Room validateAndGetRoom(UUID roomId) {
+        Room room = roomService.findByRoomId(roomId);
+        NullOrDeletedEntityValidator.validate(room, "Room");
+        return room;
+    }
+
+    private List<RoomAssignment> validateAndGetRoomAssignments(UUID roomId) {
+        List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
+        NullOrDeletedEntityValidator.validate(assignments, "Room Assignment");
+        return assignments;
+    }
+
+    private RoomAssignment validateAndGetRoomAssignment(UUID roomAssignmentId) {
+        RoomAssignment assignment = getRoomAssignmentById(roomAssignmentId);
+        if (assignment.getDeletedAt() != null || assignment.getDeletedBy() != null) {
+            throw new ResourceNotFoundException("Room Assignment", roomAssignmentId);
+        }
+        return assignment;
+    }
+
+    private List<RoomAssignment> validateAndGetRoomAssignmentsForRoom(UUID roomId) {
+        List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
+        NullOrDeletedEntityValidator.validate(assignments, "Room Assignment");
+        return assignments;
+    }
+
+    private void validateUserPrivileges(CustomUserDetails user, List<RoomAssignment> roomAssignments, UUID resourceId) {
+        boolean hasPrivilege = roomAssignments.stream()
+                .anyMatch(ra ->
+                        !PrivilegeChecker.withoutRight(user.getUser(), ra.getCreatedBy()) ||
+                                !PrivilegeChecker.withoutRight(user.getUser(), ra.getUser().getId()) ||
+                                !PrivilegeChecker.withoutRight(user.getUser(), ra.getRoom().getProperty().getUser().getId())
+                );
+        if (!hasPrivilege) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", resourceId);
+        }
+    }
+
+    private RoomAssignment findEarliestValidAssignment(List<RoomAssignment> assignments, UUID fallbackId) {
+        return assignments.stream()
+                .min(Comparator.comparing(RoomAssignment::getAssignmentDate))
+                .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", fallbackId));
+    }
+
+    private Property validateAndGetProperty(UUID propertyId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property", propertyId));
+        NullOrDeletedEntityValidator.validate(property, "Property");
+        return property;
+    }
+
+    private void validatePropertyAccess(CustomUserDetails user, Property property, UUID propertyId) {
+        if (PrivilegeChecker.withoutRight(user.getUser(), property.getCreatedBy()) &&
+                PrivilegeChecker.withoutRight(user.getUser(), property.getUser().getId())) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", propertyId);
+        }
+    }
+
+    private void validateRoomAccess(CustomUserDetails user, Room room, UUID roomId) {
+        if (PrivilegeChecker.withoutRight(user.getUser(), room.getCreatedBy()) &&
+                PrivilegeChecker.withoutRight(user.getUser(), room.getProperty().getUser().getId())) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", roomId);
+        }
+    }
+
+    private Invoice validateAndGetInvoice(UUID invoiceId) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
+        NullOrDeletedEntityValidator.validate(invoice, "Invoice");
+        return invoice;
+    }
+
+    private double calculateTotalAmount(Invoice invoice) {
         if (invoice == null) {
             throw new ResourceNotFoundException("Invoice", "id");
         }
+
         double amountDue = Optional.ofNullable(invoice.getAmountDue())
                 .orElseThrow(() -> new ResourceException("Invoice", "amount due"));
         double discount = Optional.ofNullable(invoice.getDiscount()).orElse(0.0);
         double amountPaid = Optional.ofNullable(invoice.getAmountPaid())
                 .orElseThrow(() -> new ResourceException("Invoice", "amount paid"));
+
         double totalAmount = amountDue - discount - amountPaid;
         log.info("Calculated total amount: {}", totalAmount);
         return totalAmount;
     }
 
-    @Cacheable(value = "invoices")
-    @Transactional
-    public Optional<Invoice> findById(UUID invoiceId) {
-        return invoiceRepository.findById(invoiceId);
+    private Page<Invoice> findAllByRoomAssignments(List<RoomAssignment> roomAssignments, Pageable pageable) {
+        return invoiceRepository.findAllByRoomAssignmentIn(roomAssignments, pageable);
     }
 }

@@ -1,19 +1,19 @@
 package com.kkimleang.rrms.payload.request.room;
 
+import java.time.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
-public class RoomAssignmentRequest {
+public class CreateRoomAssignmentRequest {
     private UUID roomId;
-    private LocalDate assignmentDate;
-    private LocalDate expectedEndDate;
+    private LocalDateTime assignmentDate;
+    private LocalDateTime expectedEndDate;
     private String assignmentCode;
     private double rentalPrice;
     private String remark;

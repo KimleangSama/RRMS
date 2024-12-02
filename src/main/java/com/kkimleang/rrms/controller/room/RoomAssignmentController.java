@@ -3,7 +3,7 @@ package com.kkimleang.rrms.controller.room;
 import com.kkimleang.rrms.annotation.CurrentUser;
 import com.kkimleang.rrms.controller.GlobalControllerServiceCall;
 import com.kkimleang.rrms.payload.Response;
-import com.kkimleang.rrms.payload.request.room.RoomAssignmentRequest;
+import com.kkimleang.rrms.payload.request.room.CreateRoomAssignmentRequest;
 import com.kkimleang.rrms.payload.response.room.RoomAssignmentResponse;
 import com.kkimleang.rrms.service.room.RoomAssignmentService;
 import com.kkimleang.rrms.service.user.CustomUserDetails;
@@ -24,7 +24,7 @@ public class RoomAssignmentController {
 //    @PreAuthorize("hasRole('LANDLOARD')")
     public Response<RoomAssignmentResponse> assignRoom(
             @CurrentUser CustomUserDetails user,
-            @RequestBody RoomAssignmentRequest request
+            @RequestBody CreateRoomAssignmentRequest request
     ) {
         return service.executeServiceCall(() -> roomAssignmentService.assignRoom(user, request),
                 "Failed to assign room to tenant");

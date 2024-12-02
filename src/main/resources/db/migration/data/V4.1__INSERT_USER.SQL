@@ -8,5 +8,12 @@ VALUES ('a9f38679-09bf-4ba4-ab4b-9ea5224beb32', '2024-11-23 03:00:04.809989 +00:
         '2024-11-23 03:00:04.809998 +00:00', null, null, '95388b', null, null, null, null, 'super.admin@rrms.com', null,
         null, null, null, null, null, null,
         '$2a$10$nRLYbv1te1iWk0hIZA.GGOaOc5qWuub.bLI1J7CsS9GJZ9ez/qFcq',
-        null, null, null, 'LOCAL', 'ACTIVE', 'superadmin', null, '2f2ce49c-7f7f-4679-833c-21e3c689ab17', 'superadmin',
-        'MALE', null);
+        null, null, null, 'LOCAL', 'ACTIVE', 'superadmin', null, '2f2ce49c-7f7f-4679-833c-21e3c689ab18', 'superadmin',
+        'MALE', null),
+       ('acad8cda-0b5c-499f-9d49-68fc7561e4cf', '2024-11-23 03:00:04.809989 +00:00',
+        'a9f38679-09bf-4ba4-ab4b-9ea5224beb32', null, null,
+        '2024-11-23 03:00:04.809998 +00:00', null, null, '123456', null, null, null, null, 'kimleang.srd@gmail.com',
+        null, null, null, null, null, null, null,
+        '$2a$10$nRLYbv1te1iWk0hIZA.GGOaOc5qWuub.bLI1J7CsS9GJZ9ez/qFcq', null, null, null, 'LOCAL', 'ACTIVE', 'kimleang',
+        null, '2f2ce49c-7f7f-4679-833c-21e3c689ab17', 'kimleang', 'MALE', null);
+

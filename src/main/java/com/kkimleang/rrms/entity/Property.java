@@ -1,27 +1,20 @@
 package com.kkimleang.rrms.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.kkimleang.rrms.enums.property.PropertyStatus;
-import com.kkimleang.rrms.enums.property.PropertyType;
+import com.fasterxml.jackson.annotation.*;
+import com.kkimleang.rrms.enums.property.*;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.redis.core.RedisHash;
-
-import java.io.Serial;
-import java.util.HashSet;
-import java.util.Set;
+import jakarta.validation.constraints.*;
+import java.io.*;
+import java.util.*;
+import lombok.*;
+import org.springframework.data.redis.core.*;
 
 @RedisHash("Properties")
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "properties", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"picture_cover"}, name = "unq_picture_cover"),
-})
+@Table(name = "properties")
 public class Property extends BaseEntityAudit {
     @Serial
     private static final long serialVersionUID = 1L;

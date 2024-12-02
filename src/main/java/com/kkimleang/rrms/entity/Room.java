@@ -60,7 +60,7 @@ public class Room extends BaseEntityAudit {
     private LocalDate availableDate;
 
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
