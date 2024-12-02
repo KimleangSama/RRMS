@@ -1,7 +1,6 @@
 package com.kkimleang.rrms.entity;
 
 import com.kkimleang.rrms.enums.room.BookingStatus;
-import com.kkimleang.rrms.enums.room.PaymentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "bookings", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"booking_date", "room_id"}),
-        @UniqueConstraint(columnNames = {"room_id", "user_id"}),
 })
 public class Booking extends BaseEntityAudit {
     @Serial
@@ -38,10 +36,6 @@ public class Booking extends BaseEntityAudit {
     @Column(name = "booking_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus = BookingStatus.PENDING;
-
-    @Column(name = "payment_status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @Column(name = "amount_paid")
     private Double amountPaid;

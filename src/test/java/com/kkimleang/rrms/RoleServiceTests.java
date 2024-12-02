@@ -1,20 +1,16 @@
 package com.kkimleang.rrms;
 
-import com.kkimleang.rrms.entity.Role;
-import com.kkimleang.rrms.service.user.RoleService;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.Arrays;
-import java.util.List;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.service.user.*;
+import java.util.*;
+import lombok.extern.slf4j.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
 
 @Slf4j
 @SpringBootTest
-public class RoleServiceTests {
+class RoleServiceTests {
     @Autowired
     private RoleService roleService;
 
@@ -34,6 +30,6 @@ public class RoleServiceTests {
     public void testFindByNames() {
         List<Role> roles = roleService.findByNames(Arrays.asList("ADMIN", "SUPER_ADMIN"));
         log.info("Roles: {}", roles);
-        Assert.assertEquals(2, roles.size());
+        Assertions.assertEquals(2, roles.size());
     }
 }

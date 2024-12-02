@@ -110,4 +110,10 @@ public class InvoiceService {
         log.info("Calculated total amount: {}", totalAmount);
         return totalAmount;
     }
+
+    @Cacheable(value = "invoices")
+    @Transactional
+    public Optional<Invoice> findById(UUID invoiceId) {
+        return invoiceRepository.findById(invoiceId);
+    }
 }

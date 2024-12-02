@@ -16,7 +16,7 @@ create table invoices
     invoice_status     varchar(255)     not null
         constraint invoices_invoice_status_check
             check ((invoice_status)::text = ANY
-                   ((ARRAY ['UNPAID'::character varying, 'PAID'::character varying, 'CANCELLED'::character varying, 'EXPIRED'::character varying, 'REFUNDED'::character varying])::text[])),
+                   ((ARRAY ['UNPAID'::character varying, 'PARTIAL_PAID'::character varying, 'PAID'::character varying, 'CANCELLED'::character varying, 'EXPIRED'::character varying, 'REFUNDED'::character varying])::text[])),
     remark             oid              not null,
     total_amount       double precision not null,
     room_assignment_id uuid             not null
