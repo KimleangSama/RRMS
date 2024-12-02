@@ -25,7 +25,7 @@ spring:
         show_sql: false
   datasource:
     driver-class-name: ${DRIVER_CLASS_NAME:org.postgresql.Driver}
-    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/rrms}
     username: ${DATASOURCE_USERNAME:postgres}
     password: ${DATASOURCE_PASSWORD:postgres}
     hikari:
@@ -35,7 +35,7 @@ spring:
     locations: classpath:db/migration/structure, classpath:db/migration/data
     validate-on-migrate: true
     default-schema: public
-    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/rrms}
     user: ${DATASOURCE_USERNAME:postgres}
     password: ${DATASOURCE_PASSWORD:postgres}
   data:
