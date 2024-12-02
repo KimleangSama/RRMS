@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface RoomAssignmentRepository extends JpaRepository<RoomAssignment, UUID> {
     Optional<RoomAssignment> findRoomAssignmentByUserId(UUID userId);
 
-    Optional<RoomAssignment> findRoomAssignmentByRoomId(UUID roomId);
+    Optional<List<RoomAssignment>> findRoomAssignmentByRoomId(UUID roomId);
 
     Optional<List<RoomAssignment>> findRoomAssignmentsByRoomIn(List<Room> rooms);
 }

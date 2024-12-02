@@ -129,7 +129,7 @@ public class RoomAssignmentService {
         return roomAssignmentRepository.findById(roomAssignmentId);
     }
 
-    public RoomAssignment findByRoomId(UUID roomId) {
+    public List<RoomAssignment> findByRoomId(UUID roomId) {
         return roomAssignmentRepository.findRoomAssignmentByRoomId(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "room id " + roomId));
     }
