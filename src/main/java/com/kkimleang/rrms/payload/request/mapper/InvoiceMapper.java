@@ -1,8 +1,9 @@
 package com.kkimleang.rrms.payload.request.mapper;
 
-import com.kkimleang.rrms.entity.Invoice;
-import com.kkimleang.rrms.payload.request.payment.CreateInvoiceRequest;
-import lombok.extern.slf4j.Slf4j;
+import com.kkimleang.rrms.config.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.payload.request.payment.*;
+import lombok.extern.slf4j.*;
 
 @Slf4j
 public class InvoiceMapper {
@@ -16,7 +17,10 @@ public class InvoiceMapper {
         invoice.setAmountDue(request.getAmountDue());
         invoice.setDiscount(request.getDiscount());
         invoice.setRemark(request.getRemark());
-        invoice.setTotalAmount(request.getAmountDue() - request.getDiscount() - request.getAmountPaid());
         invoice.setInvoiceStatus(request.getInvoiceStatus());
+    }
+
+    public static void editInvoiceStatusFromEditInvoiceStatusRequest(Invoice invoice, EditInvoiceStatusRequest request) {
+        ModelMapperConfig.modelMapper().map(request, invoice);
     }
 }

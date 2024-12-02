@@ -1,4 +1,4 @@
-create table if not exists invoices
+create table invoices
 (
     id                 uuid             not null
         primary key,
@@ -13,9 +13,10 @@ create table if not exists invoices
     discount           double precision,
     due_date           timestamp(6)     not null,
     invoice_date       timestamp(6)     not null,
-    invoice_status     smallint         not null
+    invoice_status     varchar(255)     not null
         constraint invoices_invoice_status_check
-            check ((invoice_status >= 0) AND (invoice_status <= 4)),
+            check ((invoice_status)::text = ANY
+                   ((ARRAY ['UNPAID'::character varying, 'PAID'::character varying, 'CANCELLED'::character varying, 'EXPIRED'::character varying, 'REFUNDED'::character varying])::text[])),
     remark             oid              not null,
     total_amount       double precision not null,
     room_assignment_id uuid             not null

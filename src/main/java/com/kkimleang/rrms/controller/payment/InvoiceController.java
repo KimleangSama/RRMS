@@ -3,7 +3,7 @@ package com.kkimleang.rrms.controller.payment;
 import com.kkimleang.rrms.annotation.CurrentUser;
 import com.kkimleang.rrms.controller.GlobalControllerServiceCall;
 import com.kkimleang.rrms.payload.Response;
-import com.kkimleang.rrms.payload.request.payment.CreateInvoiceRequest;
+import com.kkimleang.rrms.payload.request.payment.*;
 import com.kkimleang.rrms.payload.response.payment.InvoiceResponse;
 import com.kkimleang.rrms.service.payment.InvoiceService;
 import com.kkimleang.rrms.service.user.CustomUserDetails;
@@ -74,5 +74,18 @@ public class InvoiceController {
             log.info("User {} created invoice {}", user.getUsername(), response.getId());
             return response;
         }, "Failed to create invoice");
+    }
+
+    @PatchMapping("/edit-status/{invoiceId}")
+    public Response<InvoiceResponse> editInvoiceStatus(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable("invoiceId") UUID invoiceId,
+            @RequestBody EditInvoiceStatusRequest request
+    ) {
+        return service.executeServiceCall(() -> {
+            InvoiceResponse response = invoiceService.editInvoiceStatus(user, invoiceId, request);
+            log.info("User {} edited status of invoice {}", user.getUsername(), invoiceId);
+            return response;
+        }, "Failed to edit status of invoice");
     }
 }

@@ -14,7 +14,7 @@ public class ModelMapperConfig {
         Condition<?, ?> skipNulls =
                 context -> context.getSource() != null;
         modelMapper.getConfiguration()
-                .setMatchingStrategy(MatchingStrategies.STANDARD)
+                .setMatchingStrategy(MatchingStrategies.STRICT)
                 .setPropertyCondition(skipNulls);
         return modelMapper;
     }

@@ -1,15 +1,11 @@
 package com.kkimleang.rrms.entity;
 
-import com.kkimleang.rrms.enums.room.InvoiceStatus;
+import com.kkimleang.rrms.enums.room.*;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.redis.core.RedisHash;
-
-import java.io.Serial;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.io.*;
+import java.time.*;
+import lombok.*;
+import org.springframework.data.redis.core.*;
 
 @RedisHash("Invoice")
 @Getter
@@ -44,6 +40,7 @@ public class Invoice extends BaseEntityAudit {
     private String remark;
 
     @Column(name = "invoice_status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private InvoiceStatus invoiceStatus = InvoiceStatus.UNPAID;
 
     @ManyToOne(fetch = FetchType.LAZY)
