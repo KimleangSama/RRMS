@@ -24,7 +24,7 @@ public class InvoiceController {
     private final GlobalControllerServiceCall service;
 
     @GetMapping("/of-room/{roomId}")
-    @PreAuthorize("hasRole('LANDLORD')")
+//    @PreAuthorize("hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfRoom(
             @CurrentUser CustomUserDetails user,
             @PathVariable("roomId") UUID roomId,
@@ -39,7 +39,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/of-room-assignment/{roomAssignmentId}")
-    @PreAuthorize("hasRole('USER') or hasRole('LANDLORD')")
+//    @PreAuthorize("hasRole('USER') or hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfRoomAssignment(
             @CurrentUser CustomUserDetails user,
             @PathVariable("roomAssignmentId") UUID roomAssignmentId,
@@ -54,7 +54,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/of-property/{propertyId}")
-    @PreAuthorize("hasRole('LANDLORD')")
+//    @PreAuthorize("hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfProperty(
             @CurrentUser CustomUserDetails user,
             @PathVariable("propertyId") UUID propertyId,
@@ -69,7 +69,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('LANDLORD')")
+//    @PreAuthorize("hasRole('LANDLORD')")
     public Response<InvoiceResponse> createInvoice(
             @CurrentUser CustomUserDetails user,
             @RequestBody CreateInvoiceRequest request

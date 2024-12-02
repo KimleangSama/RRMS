@@ -4,12 +4,12 @@ import com.kkimleang.rrms.entity.RoomAssignment;
 import com.kkimleang.rrms.entity.User;
 import com.kkimleang.rrms.exception.ResourceDeletionException;
 import com.kkimleang.rrms.payload.response.user.TenantResponse;
+import java.time.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,8 +21,8 @@ import java.util.UUID;
 public class RoomAssignmentResponse {
     private UUID id;
     private RoomResponse room;
-    private LocalDate assignmentDate;
-    private LocalDate expectedEndDate;
+    private LocalDateTime assignmentDate;
+    private LocalDateTime expectedEndDate;
     private TenantResponse user;
     private double rentalPrice;
     private String remark;

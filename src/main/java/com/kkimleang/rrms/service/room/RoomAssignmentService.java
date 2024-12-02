@@ -32,7 +32,7 @@ public class RoomAssignmentService {
     private final RoomAssignmentRepository roomAssignmentRepository;
 
     @Transactional
-    public RoomAssignmentResponse assignRoom(CustomUserDetails user, RoomAssignmentRequest request) {
+    public RoomAssignmentResponse assignRoom(CustomUserDetails user, CreateRoomAssignmentRequest request) {
         validateUser(user, "create room assignment");
         // Find and validate tenant
         User tenant = findTenantByAssignmentCode(request.getAssignmentCode());
@@ -92,7 +92,7 @@ public class RoomAssignmentService {
     }
 
     private RoomAssignment createRoomAssignment(
-            RoomAssignmentRequest request,
+            CreateRoomAssignmentRequest request,
             Room room,
             UUID createBy,
             User tenant
