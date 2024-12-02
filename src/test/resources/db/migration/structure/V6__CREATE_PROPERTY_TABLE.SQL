@@ -20,9 +20,7 @@ create table if not exists properties
     longitude        double precision,
     name             varchar(255) not null,
     penalized_reason varchar(255),
-    picture_cover    varchar(255) not null
-        constraint unq_picture_cover
-            unique,
+    picture_cover    varchar(255) not null,
     property_status  varchar(255) not null
         constraint properties_property_status_check
             check ((property_status)::text = ANY

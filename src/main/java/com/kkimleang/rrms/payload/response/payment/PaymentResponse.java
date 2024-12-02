@@ -2,10 +2,13 @@ package com.kkimleang.rrms.payload.response.payment;
 
 import com.kkimleang.rrms.entity.*;
 import com.kkimleang.rrms.enums.room.*;
+import com.kkimleang.rrms.util.*;
 import java.time.*;
 import java.util.*;
 import lombok.*;
+import lombok.extern.slf4j.*;
 
+@Slf4j
 @Getter
 @Setter
 @ToString
@@ -24,7 +27,8 @@ public class PaymentResponse {
     private Double amountDue;
     private PaymentMethod paymentMethod;
 
-    public static PaymentResponse fromPayment(Payment payment) {
+    public static PaymentResponse fromPayment(User user, Payment payment) {
+        NullOrDeletedEntityValidator.validate(payment, "Payment");
         PaymentResponse response = new PaymentResponse();
         response.setId(payment.getId());
         response.setTenantId(payment.getInvoice().getRoomAssignment().getUser().getId());
@@ -37,5 +41,18 @@ public class PaymentResponse {
         response.setAmountDue(payment.getInvoice().getAmountDue());
         response.setPaymentMethod(payment.getPaymentMethod());
         return response;
+    }
+
+
+    public static List<PaymentResponse> fromPayments(User validUser, List<Payment> payments) {
+        List<PaymentResponse> responses = new ArrayList<>();
+        for (Payment payment : payments) {
+            try {
+                responses.add(fromPayment(validUser, payment));
+            } catch (Exception e) {
+                log.debug("Failed to convert payment to response: {}", payment);
+            }
+        }
+        return responses;
     }
 }

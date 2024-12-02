@@ -1,18 +1,19 @@
 package com.kkimleang.rrms.controller.payment;
 
-import com.kkimleang.rrms.annotation.CurrentUser;
-import com.kkimleang.rrms.controller.GlobalControllerServiceCall;
-import com.kkimleang.rrms.payload.Response;
+import com.kkimleang.rrms.annotation.*;
+import com.kkimleang.rrms.controller.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.*;
 import com.kkimleang.rrms.payload.request.payment.*;
-import com.kkimleang.rrms.payload.response.payment.InvoiceResponse;
-import com.kkimleang.rrms.service.payment.InvoiceService;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.kkimleang.rrms.payload.response.payment.*;
+import com.kkimleang.rrms.service.payment.*;
+import com.kkimleang.rrms.service.user.*;
+import com.kkimleang.rrms.util.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -23,6 +24,7 @@ public class InvoiceController {
     private final GlobalControllerServiceCall service;
 
     @GetMapping("/of-room/{roomId}")
+    @PreAuthorize("hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfRoom(
             @CurrentUser CustomUserDetails user,
             @PathVariable("roomId") UUID roomId,
@@ -37,6 +39,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/of-room-assignment/{roomAssignmentId}")
+    @PreAuthorize("hasRole('USER') or hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfRoomAssignment(
             @CurrentUser CustomUserDetails user,
             @PathVariable("roomAssignmentId") UUID roomAssignmentId,
@@ -51,6 +54,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/of-property/{propertyId}")
+    @PreAuthorize("hasRole('LANDLORD')")
     public Response<List<InvoiceResponse>> getInvoicesOfProperty(
             @CurrentUser CustomUserDetails user,
             @PathVariable("propertyId") UUID propertyId,
@@ -65,6 +69,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('LANDLORD')")
     public Response<InvoiceResponse> createInvoice(
             @CurrentUser CustomUserDetails user,
             @RequestBody CreateInvoiceRequest request

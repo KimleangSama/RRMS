@@ -6,6 +6,7 @@ import com.kkimleang.rrms.payload.request.mapper.*;
 import com.kkimleang.rrms.payload.request.payment.*;
 import com.kkimleang.rrms.payload.response.payment.*;
 import com.kkimleang.rrms.repository.payment.*;
+import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.room.*;
 import com.kkimleang.rrms.service.user.*;
 import com.kkimleang.rrms.util.*;
@@ -25,6 +26,7 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final RoomAssignmentService roomAssignmentService;
     private final RoomService roomService;
+    private final PropertyRepository propertyRepository;
 
     @Cacheable(value = "invoices")
     @Transactional
@@ -46,6 +48,12 @@ public class InvoiceService {
     @Transactional
     public List<InvoiceResponse> getInvoicesOfRoom(CustomUserDetails user, UUID roomId, int page, int size) {
         NullOrDeletedEntityValidator.validate(user.getUser(), "User");
+        Room room = roomService.findByRoomId(roomId);
+        NullOrDeletedEntityValidator.validate(room, "Room");
+        if (PrivilegeChecker.withoutRight(user.getUser(), room.getCreatedBy())
+                && PrivilegeChecker.withoutRight(user.getUser(), room.getProperty().getUser().getId())) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", roomId);
+        }
         List<RoomAssignment> roomAssignments = roomAssignmentService.findByRoomId(roomId);
         NullOrDeletedEntityValidator.validate(roomAssignments, "Room Assignment");
         Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, page, size);
@@ -59,6 +67,11 @@ public class InvoiceService {
         RoomAssignment roomAssignment = roomAssignmentService.findById(roomAssignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", roomAssignmentId));
         NullOrDeletedEntityValidator.validate(roomAssignment, "Room Assignment");
+        if (PrivilegeChecker.withoutRight(user.getUser(), roomAssignment.getCreatedBy())
+                && PrivilegeChecker.withoutRight(user.getUser(), roomAssignment.getUser().getId())
+                && PrivilegeChecker.withoutRight(user.getUser(), roomAssignment.getRoom().getProperty().getUser().getId())) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", roomAssignmentId);
+        }
         Page<Invoice> invoices = findAllByRoomAssignmentId(roomAssignment.getId(), page, size);
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
@@ -71,6 +84,13 @@ public class InvoiceService {
     @Transactional
     public List<InvoiceResponse> getInvoicesOfProperty(CustomUserDetails user, UUID propertyId, int page, int size) {
         NullOrDeletedEntityValidator.validate(user.getUser(), "User");
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property", propertyId));
+        NullOrDeletedEntityValidator.validate(property, "Property");
+        if (PrivilegeChecker.withoutRight(user.getUser(), property.getCreatedBy())
+                && PrivilegeChecker.withoutRight(user.getUser(), property.getUser().getId())) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", propertyId);
+        }
         List<Room> rooms = roomService.findRoomsByPropertyId(propertyId);
         List<RoomAssignment> roomAssignments = roomAssignmentService.findRoomAssignmentsByRooms(rooms);
         Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, page, size);

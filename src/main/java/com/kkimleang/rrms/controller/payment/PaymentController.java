@@ -7,6 +7,7 @@ import com.kkimleang.rrms.payload.request.payment.*;
 import com.kkimleang.rrms.payload.response.payment.*;
 import com.kkimleang.rrms.service.payment.*;
 import com.kkimleang.rrms.service.user.*;
+import java.util.*;
 import lombok.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,5 +25,14 @@ public class PaymentController {
     ) {
         return service.executeServiceCall(() -> paymentService.createPayment(user, request),
                 "Failed to create payment");
+    }
+
+    @GetMapping("/of-invoice/{invoiceId}")
+    public Response<List<PaymentResponse>> getPaymentOfInvoice(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable UUID invoiceId
+    ) {
+        return service.executeServiceCall(() -> paymentService.getPaymentsOfInvoiceId(user, invoiceId),
+                "Failed to get payment of invoice");
     }
 }
