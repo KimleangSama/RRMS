@@ -1,20 +1,13 @@
 package com.kkimleang.rrms.payload.response.room;
 
-import com.kkimleang.rrms.entity.Room;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.exception.ResourceDeletionException;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.payload.response.file.FileResponse;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.response.file.*;
+import com.kkimleang.rrms.util.*;
+import java.util.*;
+import java.util.stream.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 @Slf4j
 @Getter
@@ -33,15 +26,13 @@ public class RoomResponse {
     private Boolean hasPrivilege = false;
     private Set<FileResponse> roomPictures;
 
-    private static final String DELETION_LOG = "Room {} was deleted at {}";
-
     public static RoomResponse fromRoom(Room room) {
-        validateRoom(room);
+        DeletableEntityValidator.validate(room, "Room");
         return mapToResponse(room, false);
     }
 
     public static RoomResponse fromRoom(User user, Room room) {
-        validateRoom(room);
+        DeletableEntityValidator.validate(room, "Room");
         boolean hasPrivilege = user.getId().equals(room.getProperty().getUser().getId());
         return mapToResponse(room, hasPrivilege);
     }
@@ -61,21 +52,12 @@ public class RoomResponse {
                     try {
                         return user == null ? fromRoom(room) : fromRoom(user, room);
                     } catch (ResourceDeletionException e) {
-                        log.info(DELETION_LOG, room.getId(), room.getDeletedAt());
+                        log.error(e.getMessage());
                         return null;
                     }
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-    }
-
-    private static void validateRoom(Room room) {
-        if (room == null) {
-            throw new ResourceNotFoundException("Room", "id");
-        }
-        if (room.getDeletedBy() != null && room.getDeletedAt() != null) {
-            throw new ResourceDeletionException("Room", room.getDeletedAt().toString());
-        }
     }
 
     private static RoomResponse mapToResponse(Room room, boolean hasPrivilege) {

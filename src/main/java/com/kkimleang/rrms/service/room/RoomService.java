@@ -10,6 +10,7 @@ import com.kkimleang.rrms.repository.file.*;
 import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.service.user.*;
+import com.kkimleang.rrms.util.*;
 import static com.kkimleang.rrms.util.PrivilegeChecker.*;
 import jakarta.transaction.*;
 import java.time.*;
@@ -79,7 +80,7 @@ public class RoomService {
     public RoomResponse getRoomById(CustomUserDetails user, UUID roomId) {
         Room room = getRoomById(roomId);
         RoomResponse response = RoomResponse.fromRoom(room);
-        response.setHasPrivilege(hasPrivilege(user, room));
+        response.setHasPrivilege(PrivilegeChecker.isRoomOwner(user.getUser(), room));
         return response;
     }
 
@@ -100,9 +101,8 @@ public class RoomService {
         validateUser(user, "edit room");
         Room room = getRoomById(roomId);
         validatePrivilege(user, room, "edit");
-
         RoomMapper.editRoomFromEditRoomRequest(room, request);
-        updateRoomCommon(room, user);
+        room.setUpdatedBy(user.getUser().getId());
         return RoomResponse.fromRoom(roomRepository.save(room));
     }
 
@@ -110,12 +110,11 @@ public class RoomService {
     public RoomResponse editRoomAvailable(CustomUserDetails user, UUID roomId, EditAvailableRequest request) {
         validateUser(user, "edit room available");
         Room room = getRoomById(roomId);
-        RoomResponse response = RoomResponse.fromRoom(roomRepository.save(room));
         validatePrivilege(user, room, "edit availability of");
         RoomMapper.editRoomAvailableFromEditAvailableRequest(room, request);
-        updateRoomCommon(room, user);
-        roomRepository.save(room);
-        return response;
+        room.setUpdatedBy(user.getUser().getId());
+        room = roomRepository.save(room);
+        return RoomResponse.fromRoom(room);
     }
 
     private void validateRoomNumber(UUID propertyId, String roomNumber) {
@@ -126,40 +125,31 @@ public class RoomService {
     }
 
     private void validatePrivilege(CustomUserDetails user, Room room, String operation) {
-        if (!hasPrivilege(user, room)) {
-            throw new ResourceForbiddenException("Unauthorized to " + operation + " room", room);
+        if (PrivilegeChecker.isCreator(user.getUser(), room.getCreatedBy()) ||
+                PrivilegeChecker.isRoomOwner(user.getUser(), room)) {
+            return;
         }
-    }
-
-    private boolean hasPrivilege(CustomUserDetails user, Room room) {
-        try {
-            return Optional
-                    .ofNullable(user)
-                    .map(CustomUserDetails::getUser)
-                    .map(User::getId)
-                    .map(userId -> room.getProperty().getUser().getId().equals(userId)).orElse(false);
-        } catch (Exception e) {
-            log.error("Failed to check privilege for room: {}", e.getMessage(), e);
-            return false;
-        }
+        throw new ResourceForbiddenException("Unauthorized to " + operation + " room", room);
     }
 
     private Property getPropertyById(UUID propertyId) {
-        return propertyRepository.findById(propertyId).orElseThrow(() -> new ResourceNotFoundException("Property", propertyId.toString()));
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property", propertyId.toString()));
+        DeletableEntityValidator.validate(property, "Property");
+        return property;
     }
 
     private Room getRoomById(UUID roomId) {
-        return roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", roomId.toString()));
-    }
-
-    private void updateRoomCommon(Room room, CustomUserDetails user) {
-        room.setUpdatedBy(user.getUser().getId());
-        room.setUpdatedAt(Instant.now());
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", roomId.toString()));
+        DeletableEntityValidator.validate(room, "Room");
+        return room;
     }
 
     @Cacheable(value = "room", key = "#roomId")
     public Room findByRoomId(UUID roomId) {
-        return roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", roomId.toString()));
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room", roomId.toString()));
+        DeletableEntityValidator.validate(room, "Room");
+        return room;
     }
 
     public List<Room> findRoomsByPropertyId(UUID id) {

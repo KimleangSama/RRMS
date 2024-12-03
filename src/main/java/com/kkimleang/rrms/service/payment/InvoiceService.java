@@ -24,15 +24,14 @@ import org.springframework.stereotype.*;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
-    private final RoomAssignmentService roomAssignmentService;
+    private final RoomAssignmentService raService;
     private final RoomService roomService;
     private final PropertyRepository propertyRepository;
 
     @Transactional
     public InvoiceResponse createInvoice(CustomUserDetails user, CreateInvoiceRequest request) {
         validateUser(user);
-        RoomAssignment roomAssignment = getRoomAssignmentById(request.getRoomAssignmentId());
-        DeletableEntityValidator.validate(roomAssignment, "Room Assignment");
+        RoomAssignment roomAssignment = raService.findById(request.getRoomAssignmentId());
         DeletableEntityValidator.validate(roomAssignment.getRoom(), "Room");
         DeletableEntityValidator.validate(roomAssignment.getRoom().getProperty(), "Property");
         Invoice invoice = new Invoice();
@@ -70,9 +69,6 @@ public class InvoiceService {
         validateUser(user);
         RoomAssignment roomAssignment = validateAndGetRoomAssignment(roomAssignmentId);
         List<RoomAssignment> roomAssignments = validateAndGetRoomAssignmentsForRoom(roomAssignment.getRoom().getId());
-        roomAssignments = roomAssignments.stream()
-                .filter(ra -> ra.getDeletedAt() == null && ra.getDeletedBy() == null)
-                .toList();
         validateUserPrivileges(user, roomAssignments, roomAssignmentId);
         RoomAssignment earliestAssignment = findEarliestValidAssignment(roomAssignments, roomAssignmentId);
         Page<Invoice> invoices = invoiceRepository.findAllByRoomAssignmentInAndInvoiceDateIsAfter(
@@ -89,7 +85,7 @@ public class InvoiceService {
         Property property = validateAndGetProperty(propertyId);
         validatePropertyAccess(user, property, propertyId);
         List<Room> rooms = roomService.findRoomsByPropertyId(propertyId);
-        List<RoomAssignment> roomAssignments = roomAssignmentService.findRoomAssignmentsByRooms(rooms);
+        List<RoomAssignment> roomAssignments = raService.findRoomAssignmentsByRooms(rooms);
         Page<Invoice> invoices = findAllByRoomAssignments(roomAssignments, PageRequest.of(page, size));
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
@@ -106,20 +102,9 @@ public class InvoiceService {
         return InvoiceResponse.fromInvoice(user.getUser(), invoiceRepository.save(invoice));
     }
 
-    @Cacheable(value = "invoices", key = "#invoiceId")
-    @Transactional
-    public Optional<Invoice> findById(UUID invoiceId) {
-        return invoiceRepository.findById(invoiceId);
-    }
-
     // Private helper methods
     private void validateUser(CustomUserDetails user) {
         DeletableEntityValidator.validate(user.getUser(), "User");
-    }
-
-    private RoomAssignment getRoomAssignmentById(UUID id) {
-        return roomAssignmentService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room Assignment", id));
     }
 
     private Room validateAndGetRoom(UUID roomId) {
@@ -129,22 +114,19 @@ public class InvoiceService {
     }
 
     private List<RoomAssignment> validateAndGetRoomAssignments(UUID roomId) {
-        List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
+        List<RoomAssignment> assignments = raService.findByRoomId(roomId);
         DeletableEntityValidator.validate(assignments, "Room Assignment");
         return assignments;
     }
 
     private RoomAssignment validateAndGetRoomAssignment(UUID roomAssignmentId) {
-        RoomAssignment assignment = getRoomAssignmentById(roomAssignmentId);
-//        if (assignment.getDeletedAt() != null || assignment.getDeletedBy() != null) {
-//            throw new ResourceNotFoundException("Room Assignment", roomAssignmentId);
-//        }
+        RoomAssignment assignment = raService.findById(roomAssignmentId);
         DeletableEntityValidator.validate(assignment, "Room Assignment");
         return assignment;
     }
 
     private List<RoomAssignment> validateAndGetRoomAssignmentsForRoom(UUID roomId) {
-        List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
+        List<RoomAssignment> assignments = raService.findByRoomId(roomId);
         DeletableEntityValidator.validate(assignments, "Room Assignment");
         return assignments;
     }
@@ -152,9 +134,9 @@ public class InvoiceService {
     private void validateUserPrivileges(CustomUserDetails user, List<RoomAssignment> roomAssignments, UUID resourceId) {
         boolean hasPrivilege = roomAssignments.stream()
                 .anyMatch(ra ->
-                        !PrivilegeChecker.withoutRight(user.getUser(), ra.getCreatedBy()) ||
-                                !PrivilegeChecker.withoutRight(user.getUser(), ra.getUser().getId()) ||
-                                !PrivilegeChecker.withoutRight(user.getUser(), ra.getRoom().getProperty().getUser().getId())
+                        !PrivilegeChecker.isCreator(user.getUser(), ra.getCreatedBy()) ||
+                                PrivilegeChecker.isRoomAssignmentTenant(user.getUser(), ra) ||
+                                PrivilegeChecker.isRoomAssignmentOwner(user.getUser(), ra)
                 );
         if (!hasPrivilege) {
             throw new ResourceForbiddenException("You are not allowed to access this resource", resourceId);
@@ -175,17 +157,19 @@ public class InvoiceService {
     }
 
     private void validatePropertyAccess(CustomUserDetails user, Property property, UUID propertyId) {
-        if (PrivilegeChecker.withoutRight(user.getUser(), property.getCreatedBy()) &&
-                PrivilegeChecker.withoutRight(user.getUser(), property.getUser().getId())) {
-            throw new ResourceForbiddenException("You are not allowed to access this resource", propertyId);
+        if (PrivilegeChecker.isCreator(user.getUser(), property.getCreatedBy()) ||
+                PrivilegeChecker.isPropertyOwner(user.getUser(), property)) {
+            return;
         }
+        throw new ResourceForbiddenException("You are not allowed to access this resource", propertyId);
     }
 
     private void validateRoomAccess(CustomUserDetails user, Room room, UUID roomId) {
-        if (PrivilegeChecker.withoutRight(user.getUser(), room.getCreatedBy()) &&
-                PrivilegeChecker.withoutRight(user.getUser(), room.getProperty().getUser().getId())) {
-            throw new ResourceForbiddenException("You are not allowed to access this resource", roomId);
+        if (PrivilegeChecker.isCreator(user.getUser(), room.getCreatedBy()) ||
+                PrivilegeChecker.isRoomOwner(user.getUser(), room)) {
+            return;
         }
+        throw new ResourceForbiddenException("You are not allowed to access this resource", roomId);
     }
 
     private Invoice validateAndGetInvoice(UUID invoiceId) {

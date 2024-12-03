@@ -42,29 +42,12 @@ public class PropertyResponse implements Serializable {
     private static final ModelMapper modelMapper = ModelMapperConfig.modelMapper();
     private static final String DELETION_LOG = "Property {} is deleted at {}";
 
-    public static PropertyResponse fromProperty(Property property) {
-        DeletableEntityValidator.validate(property, "Property");
-        return createPropertyResponse(property);
-    }
-
     public static PropertyResponse fromProperty(User user, Property property) {
-        PropertyResponse response = fromProperty(property);
+        DeletableEntityValidator.validate(property, "Property");
+        PropertyResponse response = createPropertyResponse(property);
+        if (user == null) return response;
         response.setHasPrivilege(user.getId().equals(property.getUser().getId()));
         return response;
-    }
-
-    public static List<PropertyResponse> fromProperties(List<Property> properties) {
-        return properties.stream()
-                .map(property -> {
-                    try {
-                        return fromProperty(property);
-                    } catch (ResourceDeletionException e) {
-                        log.info(DELETION_LOG, property.getId(), property.getDeletedAt());
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
     }
 
     public static List<PropertyResponse> fromProperties(User user, List<Property> properties) {

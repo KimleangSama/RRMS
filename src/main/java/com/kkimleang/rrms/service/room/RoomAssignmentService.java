@@ -68,22 +68,18 @@ public class RoomAssignmentService {
 
     // Private helper methods
     private User findTenantByAssignmentCode(String assignmentCode) {
-        return userRepository.findByAssignmentCode(assignmentCode)
+        User user = userRepository.findByAssignmentCode(assignmentCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Tenant", "assignment code " + assignmentCode));
+        DeletableEntityValidator.validate(user, "Tenant");
+        return user;
     }
 
     private void validateTenantNotAssigned(UUID tenantId) {
         roomAssignmentRepository.findRoomAssignmentByUserId(tenantId)
-                .ifPresent(assignment -> {
-                    // Not yet deleted
-                    if (assignment.getDeletedBy() == null && assignment.getDeletedAt() == null) {
-                        throw new TenantAlreadyAssignedException("Tenant is already assigned to room: " + assignment.getRoom().getId());
-                    }
-                });
+                .ifPresent(assignment -> DeletableEntityValidator.validate(assignment, "Room Assignment"));
     }
 
     private void validateRoomAvailability(Room room) {
-        DeletableEntityValidator.validate(room, "Room");
         DeletableEntityValidator.validate(room.getProperty(), "Property");
         if (room.getAvailableStatus() != AvailableStatus.ASSIGNED && room.getAvailableStatus() != AvailableStatus.AVAILABLE) {
             throw new RoomNotAvailableException("room is already " + room.getAvailableStatus());
@@ -110,8 +106,10 @@ public class RoomAssignmentService {
     }
 
     private RoomAssignment findAssignmentById(UUID id) {
-        return roomAssignmentRepository.findById(id)
+        RoomAssignment ra = roomAssignmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id));
+        DeletableEntityValidator.validate(ra.getRoom(), "Room Assignment");
+        return ra;
     }
 
     @Transactional
@@ -123,14 +121,12 @@ public class RoomAssignmentService {
         return RoomAssignmentResponse.fromRoomAssignments(user.getUser(), roomAssignments);
     }
 
-    @Cacheable(value = "assignment", key = "#roomAssignmentId")
-    public Optional<RoomAssignment> findById(UUID roomAssignmentId) {
-        return roomAssignmentRepository.findById(roomAssignmentId);
-    }
-
     public List<RoomAssignment> findByRoomId(UUID roomId) {
         return roomAssignmentRepository.findRoomAssignmentByRoomId(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "room id " + roomId));
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "room id " + roomId))
+                .stream()
+                .filter(assignment -> assignment.getDeletedBy() == null || assignment.getDeletedAt() == null)
+                .toList();
     }
 
     public List<RoomAssignment> findRoomAssignmentsByRooms(List<Room> rooms) {
@@ -139,5 +135,12 @@ public class RoomAssignmentService {
                 .stream()
                 .filter(assignment -> assignment.getDeletedBy() == null || assignment.getDeletedAt() == null)
                 .toList();
+    }
+
+    public RoomAssignment findById(UUID id) {
+        RoomAssignment ra = roomAssignmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, id));
+        DeletableEntityValidator.validate(ra.getRoom(), "Room Assignment");
+        return ra;
     }
 }

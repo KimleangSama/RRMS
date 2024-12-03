@@ -10,8 +10,6 @@ import com.kkimleang.rrms.repository.payment.*;
 import com.kkimleang.rrms.service.user.*;
 import com.kkimleang.rrms.util.*;
 import jakarta.transaction.*;
-import java.math.*;
-import java.time.*;
 import java.util.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
@@ -29,7 +27,8 @@ public class PaymentService {
         User user = validateUser(userDetails);
         Invoice invoice = findAndValidateInvoice(request.getInvoiceId());
         Payment payment = createAndSavePayment(user, invoice, request);
-        updateInvoiceStatus(invoice, payment);
+        invoice = updateInvoiceStatus(invoice, payment);
+        payment.setInvoice(invoice);
         return PaymentResponse.fromPayment(user, payment);
     }
 
@@ -37,7 +36,7 @@ public class PaymentService {
     public List<PaymentResponse> getPaymentsOfInvoiceId(CustomUserDetails userDetails, UUID invoiceId) {
         User user = validateUser(userDetails);
         Invoice invoice = findAndValidateInvoice(invoiceId);
-        validateUserAccess(user, invoice);
+        validatePrivilege(user, invoice);
         return PaymentResponse.fromPayments(
                 user,
                 paymentRepository.findAllByInvoice(invoice)
@@ -48,7 +47,7 @@ public class PaymentService {
     public PaymentResponse editPayment(CustomUserDetails userDetails, UUID paymentId, EditPaymentInfoRequest request) {
         User user = validateUser(userDetails);
         Payment payment = findAndValidatePayment(paymentId);
-        validateUserAccess(user, payment.getInvoice());
+        validatePrivilege(user, payment.getInvoice());
         PaymentMapper.mapToPayment(user, payment, request);
         Payment updatedPayment = paymentRepository.save(payment);
         log.info("Payment updated: {}", updatedPayment);
@@ -84,12 +83,15 @@ public class PaymentService {
         return payment;
     }
 
-    private void validateUserAccess(User user, Invoice invoice) {
-        boolean hasAccess = !PrivilegeChecker.withoutRight(user, invoice.getRoomAssignment().getRoom().getCreatedBy()) ||
-                !PrivilegeChecker.withoutRight(user, invoice.getRoomAssignment().getRoom().getProperty().getCreatedBy());
-        if (!hasAccess) {
-            throw new ResourceForbiddenException("You are not allowed to access this resource", invoice.getId());
+    private void validatePrivilege(User user, Invoice invoice) {
+        if (PrivilegeChecker.isCreator(user, invoice.getCreatedBy()) ||
+                PrivilegeChecker.isRoomOwner(user, invoice.getRoomAssignment().getRoom()) ||
+                PrivilegeChecker.isPropertyOwner(user, invoice.getRoomAssignment().getRoom().getProperty()) ||
+                PrivilegeChecker.isRoomAssignmentOwner(user, invoice.getRoomAssignment()) ||
+                PrivilegeChecker.isRoomAssignmentTenant(user, invoice.getRoomAssignment())) {
+            return;
         }
+        throw new ResourceForbiddenException("Unauthorized to access this resource", invoice.getId());
     }
 
     private Payment createAndSavePayment(User user, Invoice invoice, CreatePaymentRequest request) {
@@ -101,25 +103,28 @@ public class PaymentService {
         return savedPayment;
     }
 
-    private void updateInvoiceStatus(Invoice invoice, Payment payment) {
-        BigDecimal newAmountPaid = computeNewAmountPaid(invoice, payment);
-        BigDecimal totalAmount = BigDecimal.valueOf(invoice.getTotalAmount());
-        invoice.setUpdatedAt(Instant.now());
+    private Invoice updateInvoiceStatus(Invoice invoice, Payment payment) {
+        double totalAmount = invoice.getTotalAmount();
+        double amountDue = invoice.getAmountDue();
+        double paymentAmountPaid = payment.getAmountPaid();
+        double invoiceAmountPaid = invoice.getAmountPaid();
+
         invoice.setUpdatedBy(payment.getCreatedBy());
-        invoice.setAmountPaid(newAmountPaid.doubleValue());
-        invoice.setAmountDue(totalAmount.subtract(newAmountPaid).doubleValue());
-        invoice.setInvoiceStatus(calculateInvoiceStatus(newAmountPaid, totalAmount));
-        invoiceRepository.save(invoice);
+        invoice.setAmountPaid(invoiceAmountPaid + paymentAmountPaid);
+        invoice.setAmountDue(totalAmount - invoice.getAmountPaid());
+        invoice.setTotalAmount(totalAmount);
+        invoice.setInvoiceStatus(getInvoiceStatus(amountDue));
+
+        return invoiceRepository.save(invoice);
     }
 
-    private BigDecimal computeNewAmountPaid(Invoice invoice, Payment payment) {
-        return BigDecimal.valueOf(invoice.getAmountPaid())
-                .add(BigDecimal.valueOf(payment.getAmountPaid()));
-    }
-
-    private InvoiceStatus calculateInvoiceStatus(BigDecimal amountPaid, BigDecimal totalAmount) {
-        if (amountPaid.compareTo(totalAmount) >= 0) return InvoiceStatus.PAID;
-        if (amountPaid.compareTo(BigDecimal.ZERO) > 0) return InvoiceStatus.PARTIAL_PAID;
-        return InvoiceStatus.UNPAID;
+    private InvoiceStatus getInvoiceStatus(double amountDue) {
+        if (amountDue == 0) {
+            return InvoiceStatus.PAID;
+        } else if (amountDue > 0) {
+            return InvoiceStatus.PARTIAL_PAID;
+        } else {
+            return InvoiceStatus.UNPAID;
+        }
     }
 }

@@ -1,18 +1,13 @@
 package com.kkimleang.rrms.payload.response.room;
 
-import com.kkimleang.rrms.entity.RoomAssignment;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.exception.ResourceDeletionException;
-import com.kkimleang.rrms.payload.response.user.TenantResponse;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.response.user.*;
+import com.kkimleang.rrms.util.*;
 import java.time.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 @Slf4j
 @Getter
@@ -32,9 +27,7 @@ public class RoomAssignmentResponse {
     }
 
     public static RoomAssignmentResponse fromRoomAssignment(User user, RoomAssignment assignment) {
-        if (assignment.getDeletedAt() != null && assignment.getDeletedBy() != null) {
-            throw new ResourceDeletionException("Room Assignment", assignment.getDeletedAt().toString());
-        }
+        DeletableEntityValidator.validate(assignment, "Room Assignment");
         RoomAssignmentResponse response = new RoomAssignmentResponse();
         response.setId(assignment.getId());
         response.setRoom(RoomResponse.fromRoom(assignment.getRoom()));

@@ -1,6 +1,5 @@
 package com.kkimleang.rrms.service.property;
 
-import static com.kkimleang.rrms.constant.PrivilegeLogErrorMessage.*;
 import static com.kkimleang.rrms.constant.PropertyLogErrorMessage.*;
 import com.kkimleang.rrms.entity.*;
 import com.kkimleang.rrms.exception.*;
@@ -29,20 +28,18 @@ public class PropertyService {
     private final PropRoomPictureRepository propRoomPictureRepository;
 
     private void validateUserPrivilege(CustomUserDetails user, Property property) {
-        try {
-            DeletableEntityValidator.validateUser(user);
-            if (!Objects.equals(property.getUser().getId(), user.getUser().getId())) {
-                throw new ResourceForbiddenException(FORBIDDEN, property);
-            }
-        } catch (ResourceForbiddenException e) {
-            log.error(e.getMessage(), e);
-            throw e;
+        if (PrivilegeChecker.isCreator(user.getUser(), property.getCreatedBy()) ||
+                PrivilegeChecker.isPropertyOwner(user.getUser(), property)) {
+            return;
         }
+        throw new ResourceForbiddenException("Unauthorized to access property", property);
     }
 
     private Property findPropertyById(UUID propertyId) {
-        return propertyRepository.findById(propertyId)
+        Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException(PROPERTY, "id: " + propertyId));
+        DeletableEntityValidator.validate(property, PROPERTY);
+        return property;
     }
 
     @Transactional
@@ -97,7 +94,7 @@ public class PropertyService {
         return Optional.ofNullable(user)
                 .map(CustomUserDetails::getUser)
                 .map(currentUser -> PropertyResponse.fromProperties(currentUser, properties))
-                .orElseGet(() -> PropertyResponse.fromProperties(properties));
+                .orElseGet(() -> PropertyResponse.fromProperties(null, properties));
     }
 
     @Cacheable(key = "#propertyId")
@@ -112,7 +109,7 @@ public class PropertyService {
         return Optional.ofNullable(user)
                 .map(CustomUserDetails::getUser)
                 .map(currentUser -> PropertyResponse.fromProperty(currentUser, property))
-                .orElseGet(() -> PropertyResponse.fromProperty(property));
+                .orElseGet(() -> PropertyResponse.fromProperty(null, property));
     }
 
     @Cacheable(key = "#landlordId")
@@ -152,7 +149,7 @@ public class PropertyService {
         updateFunction.accept(property);
         property.setUpdatedBy(user.getUser().getId());
         property.setUpdatedAt(Instant.now());
-        return PropertyResponse.fromProperty(propertyRepository.save(property));
+        return PropertyResponse.fromProperty(user.getUser(), propertyRepository.save(property));
     }
 
     @CacheEvict(key = "#propertyId")
@@ -160,7 +157,7 @@ public class PropertyService {
     public PropertyResponse deleteProperty(CustomUserDetails user, UUID propertyId) {
         Property property = findPropertyById(propertyId);
         validateUserPrivilege(user, property);
-        PropertyResponse response = PropertyResponse.fromProperty(property);
+        PropertyResponse response = PropertyResponse.fromProperty(user.getUser(), property);
         property.setDeletedBy(user.getUser().getId());
         property.setDeletedAt(Instant.now());
         property.setName(RandomString.make(16));

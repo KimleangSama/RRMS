@@ -1,17 +1,14 @@
 package com.kkimleang.rrms.service.file;
 
-import com.kkimleang.rrms.entity.PropRoomPicture;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.repository.file.PropRoomPictureRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.repository.file.*;
+import com.kkimleang.rrms.util.*;
+import java.util.*;
+import java.util.stream.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.stereotype.*;
 
 @Slf4j
 @Service
@@ -23,9 +20,7 @@ public class PropRoomPictureService {
         try {
             PropRoomPicture picture = propertyRoomRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Picture", id.toString()));
-            if (picture == null) {
-                throw new ResourceNotFoundException("Picture", id.toString());
-            }
+            DeletableEntityValidator.validate(picture, "Picture");
             return picture;
         } catch (ResourceNotFoundException e) {
             log.error("Picture Not Found: {}", e.getMessage());

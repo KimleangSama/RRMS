@@ -1,46 +1,32 @@
 package com.kkimleang.rrms.service.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kkimleang.rrms.entity.Role;
+import com.fasterxml.jackson.databind.*;
 import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.enums.user.AuthProvider;
-import com.kkimleang.rrms.enums.user.AuthRole;
-import com.kkimleang.rrms.enums.user.AuthStatus;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.payload.request.mapper.UserMapper;
-import com.kkimleang.rrms.payload.request.user.EditBasicRequest;
-import com.kkimleang.rrms.payload.request.user.EditContactRequest;
-import com.kkimleang.rrms.payload.request.user.LoginRequest;
-import com.kkimleang.rrms.payload.request.user.SignUpRequest;
-import com.kkimleang.rrms.payload.response.user.AuthResponse;
-import com.kkimleang.rrms.repository.user.UserRepository;
-import com.kkimleang.rrms.util.PrivilegeChecker;
-import com.kkimleang.rrms.util.RandomString;
-import com.kkimleang.rrms.util.TokenProvider;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.enums.user.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.request.mapper.*;
+import com.kkimleang.rrms.payload.request.user.*;
+import com.kkimleang.rrms.payload.response.user.*;
+import com.kkimleang.rrms.repository.user.*;
+import com.kkimleang.rrms.util.*;
+import jakarta.servlet.http.*;
+import jakarta.transaction.*;
+import java.io.*;
+import java.time.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.amqp.rabbit.core.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.cache.annotation.*;
+import org.springframework.http.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.*;
+import org.springframework.security.core.context.*;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.password.*;
+import org.springframework.stereotype.*;
 
 @Slf4j
 @Service
@@ -220,7 +206,7 @@ public class UserService {
         try {
             User targetUser = userRepository.findById(targetId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", targetId));
-            if (PrivilegeChecker.withoutRight(user.getUser(), targetId)) {
+            if (!PrivilegeChecker.isCreator(user.getUser(), targetId)) {
                 throw new RuntimeException("You are not allowed to edit this user information.");
             }
             UserMapper.updateUserFromEditContactRequest(targetUser, request);
@@ -242,7 +228,7 @@ public class UserService {
         try {
             User targetUser = userRepository.findById(targetId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", targetId));
-            if (PrivilegeChecker.withoutRight(user.getUser(), targetId)) {
+            if (!PrivilegeChecker.isCreator(user.getUser(), targetId)) {
                 throw new RuntimeException("You are not allowed to edit this user information.");
             }
             UserMapper.updateUserFromEditBasicRequest(targetUser, request);
