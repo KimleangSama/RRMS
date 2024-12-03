@@ -35,9 +35,9 @@ spring:
     locations: classpath:db/migration/structure, classpath:db/migration/data
     validate-on-migrate: true
     default-schema: public
-    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/rrms}
-    user: ${DATASOURCE_USERNAME:postgres}
-    password: ${DATASOURCE_PASSWORD:postgres}
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
