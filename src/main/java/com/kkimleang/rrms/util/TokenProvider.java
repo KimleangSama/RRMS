@@ -1,17 +1,16 @@
 package com.kkimleang.rrms.util;
 
-import com.kkimleang.rrms.config.properties.TokenProperties;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.kkimleang.rrms.config.properties.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.service.user.*;
+import java.time.*;
+import java.time.temporal.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.*;
 import org.springframework.security.oauth2.jwt.*;
-import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import org.springframework.stereotype.*;
 
 @Slf4j
 @Service
@@ -48,6 +47,7 @@ public class TokenProvider {
     private String buildToken(Authentication authentication, Integer expiresHours) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Instant now = Instant.now();
+        log.info("User roles: {}", userDetails.getUser().getRoles());
         var jwtClaimsSet = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .subject(userDetails.getUsername())

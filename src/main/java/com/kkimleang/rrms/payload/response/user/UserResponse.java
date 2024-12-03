@@ -41,7 +41,7 @@ public class UserResponse implements Serializable {
         userResponse.setProfession(user.getProfession());
         userResponse.setProfilePicture(user.getProfilePicture());
         userResponse.setProvider(user.getProvider());
-        userResponse.setRoles(RoleResponse.fromRoles(user.getRoles(), false));
+        userResponse.setRoles(RoleResponse.fromRoles(user.getRoles()));
         userResponse.setUserStatus(user.getUserStatus());
         userResponse.setLastLoginAt(user.getLastLoginAt());
         return userResponse;

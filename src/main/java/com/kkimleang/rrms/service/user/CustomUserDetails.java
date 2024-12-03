@@ -46,9 +46,6 @@ public class CustomUserDetails implements OAuth2User, UserDetails, Serializable 
         log.info("UserRole: {}", user.getRoles());
         user.getRoles().forEach(role -> {
             grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
-            role.getPermissions().forEach(permission -> {
-                grantedAuthorities.add(new SimpleGrantedAuthority(permission.getName()));
-            });
         });
         return grantedAuthorities;
     }

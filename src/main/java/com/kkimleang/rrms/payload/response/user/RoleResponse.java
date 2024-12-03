@@ -16,16 +16,13 @@ public class RoleResponse implements Serializable {
     private UUID id;
     private String name;
     private Boolean isRoleValid;
-    private Set<PermissionResponse> permissions;
 
-    public static Set<RoleResponse> fromRoles(Set<Role> roles, boolean shouldIncludePermissions) {
+    public static Set<RoleResponse> fromRoles(Set<Role> roles) {
         return roles.stream().map(role -> {
             RoleResponse roleResponse = new RoleResponse();
             roleResponse.setId(role.getId());
             roleResponse.setName(role.getName());
             roleResponse.setIsRoleValid(role.isValidRole());
-            if (shouldIncludePermissions)
-                roleResponse.setPermissions(PermissionResponse.fromPermissions(role.getPermissions()));
             return roleResponse;
         }).collect(java.util.stream.Collectors.toSet());
     }
