@@ -1,6 +1,7 @@
 package com.kkimleang.rrms.service.property;
 
 import static com.kkimleang.rrms.constant.PropertyLogErrorMessage.*;
+
 import com.kkimleang.rrms.entity.*;
 import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.request.mapper.*;
@@ -11,8 +12,10 @@ import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.service.user.*;
 import com.kkimleang.rrms.util.*;
 import jakarta.transaction.*;
+
 import java.time.*;
 import java.util.*;
+
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.cache.annotation.*;
@@ -42,6 +45,7 @@ public class PropertyService {
         return property;
     }
 
+    @CacheEvict(value = "properties", allEntries = true)
     @Transactional
     public PropertyResponse createProperty(CustomUserDetails user, CreatePropertyRequest request) {
         DeletableEntityValidator.validateUser(user);
@@ -75,7 +79,7 @@ public class PropertyService {
         propRoomPictureRepository.saveAll(pictures);
     }
 
-    @Cacheable
+    @Cacheable(value = "properties")
     @Transactional
     public List<PropertyResponse> getPagingProperties(CustomUserDetails user, int page, int size) {
         try {

@@ -1,6 +1,7 @@
 package com.kkimleang.rrms.service.room;
 
 import static com.kkimleang.rrms.constant.RoomLogErrorMessage.*;
+
 import com.kkimleang.rrms.entity.*;
 import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.request.mapper.*;
@@ -11,10 +12,14 @@ import com.kkimleang.rrms.repository.property.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.service.user.*;
 import com.kkimleang.rrms.util.*;
+
 import static com.kkimleang.rrms.util.PrivilegeChecker.*;
+
 import jakarta.transaction.*;
+
 import java.time.*;
 import java.util.*;
+
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.cache.annotation.*;
@@ -29,6 +34,7 @@ public class RoomService {
     private final PropertyRepository propertyRepository;
     private final PropRoomPictureRepository propRoomPictureRepository;
 
+    @CacheEvict(value = "rooms", allEntries = true)
     @Transactional
     public RoomResponse createRoom(CustomUserDetails user, CreateRoomRequest request) {
         validateUser(user, "create room");
@@ -43,6 +49,7 @@ public class RoomService {
         return RoomResponse.fromRoom(roomRepository.save(room));
     }
 
+    @Cacheable(value = "rooms")
     @Transactional
     public List<RoomResponse> getRooms(CustomUserDetails user, UUID propertyId, int page, int size) {
         Page<Room> rooms = propertyId != null ?
@@ -76,6 +83,7 @@ public class RoomService {
         return roomRepository.findByPropertyId(property.getId(), PageRequest.of(page, size));
     }
 
+    @Cacheable(value = "rooms", key = "#roomId")
     @Transactional
     public RoomResponse getRoomById(CustomUserDetails user, UUID roomId) {
         Room room = getRoomById(roomId);
@@ -84,6 +92,7 @@ public class RoomService {
         return response;
     }
 
+    @CacheEvict(value = "rooms", key = "#roomId")
     @Transactional
     public RoomResponse deleteRoomById(CustomUserDetails user, UUID roomId) {
         validateUser(user, "delete room");
@@ -96,6 +105,7 @@ public class RoomService {
         return response;
     }
 
+    @CachePut(value = "rooms", key = "#roomId")
     @Transactional
     public RoomResponse editRoomInfo(CustomUserDetails user, UUID roomId, EditRoomRequest request) {
         validateUser(user, "edit room");
@@ -106,6 +116,7 @@ public class RoomService {
         return RoomResponse.fromRoom(roomRepository.save(room));
     }
 
+    @CachePut(value = "rooms", key = "#roomId")
     @Transactional
     public RoomResponse editRoomAvailable(CustomUserDetails user, UUID roomId, EditAvailableRequest request) {
         validateUser(user, "edit room available");

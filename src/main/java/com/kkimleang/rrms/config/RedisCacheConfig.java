@@ -1,20 +1,38 @@
 package com.kkimleang.rrms.config;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.NonNull;
+import redis.clients.jedis.Jedis;
 
+@AutoConfigureAfter(RedisAutoConfiguration.class)
 @Configuration
 public class RedisCacheConfig implements CachingConfigurer {
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
+
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
         return new JedisConnectionFactory();
@@ -24,6 +42,8 @@ public class RedisCacheConfig implements CachingConfigurer {
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory());
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
 
@@ -32,10 +52,17 @@ public class RedisCacheConfig implements CachingConfigurer {
     public CacheErrorHandler errorHandler() {
         return new DefaultCacheErrorHandler();
     }
+
+    @PostConstruct
+    public void clearCache() {
+        System.out.println("In Clear Cache");
+        Jedis jedis = new Jedis(redisHost, redisPort, 1000);
+        jedis.flushAll();
+        jedis.close();
+    }
 }
 
 class DefaultCacheErrorHandler extends SimpleCacheErrorHandler {
-
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCacheErrorHandler.class);
 
     @Override

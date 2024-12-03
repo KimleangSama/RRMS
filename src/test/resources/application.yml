@@ -7,6 +7,8 @@ servlet:
     max-request-size: 5MB
 
 spring:
+  profiles:
+    active: dev
   main:
     allow-bean-definition-overriding: true
   application:
@@ -35,9 +37,9 @@ spring:
     locations: classpath:db/migration/structure, classpath:db/migration/data
     validate-on-migrate: true
     default-schema: public
-    url: ${spring.datasource.url}
-    user: ${spring.datasource.username}
-    password: ${spring.datasource.password}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/rrms}
+    user: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
