@@ -20,7 +20,6 @@ public class InvoiceResponse {
     private String roomNumber;
 
     private String tenantId;
-    @JsonProperty("tenantFullName")
     private String fullname;
     private String phoneNumber;
 

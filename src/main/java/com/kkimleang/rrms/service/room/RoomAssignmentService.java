@@ -9,14 +9,11 @@ import com.kkimleang.rrms.payload.response.room.*;
 import com.kkimleang.rrms.repository.room.*;
 import com.kkimleang.rrms.repository.user.*;
 import com.kkimleang.rrms.service.user.*;
-
+import com.kkimleang.rrms.util.*;
 import static com.kkimleang.rrms.util.PrivilegeChecker.*;
-
 import jakarta.transaction.*;
-
-import java.time.Instant;
+import java.time.*;
 import java.util.*;
-
 import lombok.*;
 import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.*;
@@ -86,6 +83,8 @@ public class RoomAssignmentService {
     }
 
     private void validateRoomAvailability(Room room) {
+        DeletableEntityValidator.validate(room, "Room");
+        DeletableEntityValidator.validate(room.getProperty(), "Property");
         if (room.getAvailableStatus() != AvailableStatus.ASSIGNED && room.getAvailableStatus() != AvailableStatus.AVAILABLE) {
             throw new RoomNotAvailableException("room is already " + room.getAvailableStatus());
         }

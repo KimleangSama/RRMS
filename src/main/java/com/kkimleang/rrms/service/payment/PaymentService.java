@@ -24,18 +24,6 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
 
-    @Transactional
-    public PaymentResponse createPayment(CustomUserDetails user, CreatePaymentRequest request) {
-        // Validate inputs
-        User validUser = validateUser(user);
-        Invoice invoice = findAndValidateInvoice(request.getInvoiceId());
-        // Create and save payment
-        Payment payment = createAndSavePayment(validUser, invoice, request);
-        // Update invoice status
-        updateInvoiceStatus(invoice, payment, validUser.getId());
-        return PaymentResponse.fromPayment(validUser, payment);
-    }
-
     private User validateUser(CustomUserDetails user) {
         User validUser = user.getUser();
         DeletableEntityValidator.validate(validUser, "User");
@@ -47,6 +35,8 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
         DeletableEntityValidator.validate(invoice, "Invoice");
         DeletableEntityValidator.validate(invoice.getRoomAssignment(), "Room Assignment");
+        DeletableEntityValidator.validate(invoice.getRoomAssignment().getRoom(), "Room");
+        DeletableEntityValidator.validate(invoice.getRoomAssignment().getRoom().getProperty(), "Property");
         return invoice;
     }
 
@@ -80,9 +70,26 @@ public class PaymentService {
     }
 
     @Transactional
+    public PaymentResponse createPayment(CustomUserDetails user, CreatePaymentRequest request) {
+        // Validate inputs
+        User validUser = validateUser(user);
+        Invoice invoice = findAndValidateInvoice(request.getInvoiceId());
+        // Create and save payment
+        Payment payment = createAndSavePayment(validUser, invoice, request);
+        // Update invoice status
+        updateInvoiceStatus(invoice, payment, validUser.getId());
+        return PaymentResponse.fromPayment(validUser, payment);
+    }
+
+    @Transactional
     public List<PaymentResponse> getPaymentsOfInvoiceId(CustomUserDetails user, UUID invoiceId) {
         User validUser = validateUser(user);
         Invoice invoice = findAndValidateInvoice(invoiceId);
+        if (PrivilegeChecker.withoutRight(validUser, invoice.getRoomAssignment().getRoom().getCreatedBy())
+                && PrivilegeChecker.withoutRight(validUser, invoice.getRoomAssignment().getRoom().getProperty().getCreatedBy())
+        ) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", invoiceId);
+        }
         List<Payment> payments = paymentRepository.findAllByInvoice(invoice);
         return PaymentResponse.fromPayments(validUser, payments);
     }

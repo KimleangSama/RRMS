@@ -35,14 +35,14 @@ public class InvoiceService {
     public InvoiceResponse createInvoice(CustomUserDetails user, CreateInvoiceRequest request) {
         validateUser(user);
         RoomAssignment roomAssignment = getRoomAssignmentById(request.getRoomAssignmentId());
-
+        DeletableEntityValidator.validate(roomAssignment, "Room Assignment");
+        DeletableEntityValidator.validate(roomAssignment.getRoom(), "Room");
+        DeletableEntityValidator.validate(roomAssignment.getRoom().getProperty(), "Property");
         Invoice invoice = new Invoice();
         invoice.setCreatedBy(user.getUser().getId());
         invoice.setRoomAssignment(roomAssignment);
-
         InvoiceMapper.createInvoiceFromInvoiceRequest(invoice, request);
         invoice.setTotalAmount(calculateTotalAmount(invoice));
-
         return InvoiceResponse.fromInvoice(user.getUser(), invoiceRepository.save(invoice));
     }
 

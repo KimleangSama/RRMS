@@ -1,30 +1,23 @@
 package com.kkimleang.rrms.controller.user;
 
-import com.kkimleang.rrms.annotation.CurrentUser;
+import com.kkimleang.rrms.annotation.*;
 import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.enums.user.AuthProvider;
-import com.kkimleang.rrms.enums.user.AuthStatus;
-import com.kkimleang.rrms.exception.ResourceNotFoundException;
-import com.kkimleang.rrms.payload.Response;
-import com.kkimleang.rrms.payload.request.user.LoginRequest;
-import com.kkimleang.rrms.payload.request.user.SignUpRequest;
-import com.kkimleang.rrms.payload.response.user.AuthResponse;
-import com.kkimleang.rrms.payload.response.user.RoleResponse;
-import com.kkimleang.rrms.payload.response.user.UserResponse;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import com.kkimleang.rrms.service.user.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.kkimleang.rrms.enums.user.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.*;
+import com.kkimleang.rrms.payload.request.user.*;
+import com.kkimleang.rrms.payload.response.user.*;
+import com.kkimleang.rrms.service.user.*;
+import jakarta.servlet.http.*;
+import jakarta.validation.*;
+import java.io.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.security.access.prepost.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.Set;
 
 @Slf4j
 @AllArgsConstructor
@@ -80,7 +73,7 @@ public class AuthController {
     public Response<Set<RoleResponse>> getUserRoles(@CurrentUser CustomUserDetails currentUser) {
         try {
             User user = userService.findByEmail(currentUser.getEmail());
-            Set<RoleResponse> roles = RoleResponse.fromRoles(user.getRoles(), true);
+            Set<RoleResponse> roles = RoleResponse.fromRoles(user.getRoles());
             return Response.<Set<RoleResponse>>ok()
                     .setPayload(roles);
         } catch (Exception e) {
