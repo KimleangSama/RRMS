@@ -13,5 +13,5 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     boolean existsByPropertyIdAndRoomNumber(UUID propertyId, String roomNumber);
 
     @Query("SELECT r FROM Room r WHERE r.availableStatus != 'ASSIGNED'")
-    Page<Room> findWhereStatusIsNotAssigned(PageRequest of);
+    Page<Room> findWhereStatusIsNotAssigned(Pageable pageable);
 }

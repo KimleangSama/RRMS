@@ -28,15 +28,9 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final PropRoomPictureRepository propRoomPictureRepository;
 
-    private void validateUser(CustomUserDetails user) {
-        Optional.ofNullable(user)
-                .map(CustomUserDetails::getUser)
-                .orElseThrow(() -> new ResourceForbiddenException(FORBIDDEN, user));
-    }
-
     private void validateUserPrivilege(CustomUserDetails user, Property property) {
         try {
-            validateUser(user);
+            DeletableEntityValidator.validateUser(user);
             if (!Objects.equals(property.getUser().getId(), user.getUser().getId())) {
                 throw new ResourceForbiddenException(FORBIDDEN, property);
             }
@@ -53,7 +47,7 @@ public class PropertyService {
 
     @Transactional
     public PropertyResponse createProperty(CustomUserDetails user, CreatePropertyRequest request) {
-        validateUser(user);
+        DeletableEntityValidator.validateUser(user);
         User currentUser = user.getUser();
         checkPropertyDuplication(currentUser.getId(), request.getName());
         Property property = buildNewProperty(currentUser, request);
@@ -176,7 +170,7 @@ public class PropertyService {
 
     @Cacheable(value = "recommended-properties", key = "#user.user.id")
     public List<PropertyResponse> getRecommendedProperties(CustomUserDetails user) {
-        validateUser(user);
+        DeletableEntityValidator.validateUser(user);
         User currentUser = user.getUser();
         List<Property> properties = propertyRepository.findNearbyProperties(
                 currentUser.getPreferredLatitude(),

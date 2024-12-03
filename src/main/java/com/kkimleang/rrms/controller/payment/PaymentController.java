@@ -35,4 +35,14 @@ public class PaymentController {
         return service.executeServiceCall(() -> paymentService.getPaymentsOfInvoiceId(user, invoiceId),
                 "Failed to get payment of invoice");
     }
+
+    @PatchMapping("/{paymentId}/edit")
+    public Response<PaymentResponse> editPayment(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable UUID paymentId,
+            @RequestBody EditPaymentInfoRequest request
+    ) {
+        return service.executeServiceCall(() -> paymentService.editPayment(user, paymentId, request),
+                "Failed to edit payment");
+    }
 }

@@ -1,27 +1,25 @@
 package com.kkimleang.rrms.entity;
 
-import com.kkimleang.rrms.enums.room.ContractStatus;
+import com.kkimleang.rrms.enums.room.*;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.redis.core.RedisHash;
-
-import java.io.Serial;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.*;
+import java.io.*;
+import java.time.*;
+import lombok.*;
+import org.springframework.data.redis.core.*;
 
 @RedisHash("Contracts")
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "contracts", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"room_id", "user_id"}),
-})
+@Table(name = "contracts")
 public class Contract extends BaseEntityAudit {
     @Serial
     private static final long serialVersionUID = 1L;
+
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "signed_date", nullable = false)
     private LocalDateTime signedDate;
@@ -38,11 +36,7 @@ public class Contract extends BaseEntityAudit {
     @Enumerated(EnumType.STRING)
     private ContractStatus contractStatus = ContractStatus.PENDING;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
-    private Room room;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_assignment_id", nullable = false)
+    private RoomAssignment roomAssignment;
 }

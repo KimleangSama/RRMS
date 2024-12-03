@@ -24,20 +24,72 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
 
-    private User validateUser(CustomUserDetails user) {
-        User validUser = user.getUser();
-        DeletableEntityValidator.validate(validUser, "User");
-        return validUser;
+    @Transactional
+    public PaymentResponse createPayment(CustomUserDetails userDetails, CreatePaymentRequest request) {
+        User user = validateUser(userDetails);
+        Invoice invoice = findAndValidateInvoice(request.getInvoiceId());
+        Payment payment = createAndSavePayment(user, invoice, request);
+        updateInvoiceStatus(invoice, payment);
+        return PaymentResponse.fromPayment(user, payment);
+    }
+
+    @Transactional
+    public List<PaymentResponse> getPaymentsOfInvoiceId(CustomUserDetails userDetails, UUID invoiceId) {
+        User user = validateUser(userDetails);
+        Invoice invoice = findAndValidateInvoice(invoiceId);
+        validateUserAccess(user, invoice);
+        return PaymentResponse.fromPayments(
+                user,
+                paymentRepository.findAllByInvoice(invoice)
+        );
+    }
+
+    @Transactional
+    public PaymentResponse editPayment(CustomUserDetails userDetails, UUID paymentId, EditPaymentInfoRequest request) {
+        User user = validateUser(userDetails);
+        Payment payment = findAndValidatePayment(paymentId);
+        validateUserAccess(user, payment.getInvoice());
+        PaymentMapper.mapToPayment(user, payment, request);
+        Payment updatedPayment = paymentRepository.save(payment);
+        log.info("Payment updated: {}", updatedPayment);
+        return PaymentResponse.fromPayment(user, updatedPayment);
+    }
+
+    private User validateUser(CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        DeletableEntityValidator.validate(user, "User");
+        return user;
     }
 
     private Invoice findAndValidateInvoice(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        return invoiceRepository.findById(invoiceId)
+                .map(invoice -> {
+                    validateInvoiceEntities(invoice);
+                    return invoice;
+                })
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
+    }
+
+    private void validateInvoiceEntities(Invoice invoice) {
         DeletableEntityValidator.validate(invoice, "Invoice");
         DeletableEntityValidator.validate(invoice.getRoomAssignment(), "Room Assignment");
         DeletableEntityValidator.validate(invoice.getRoomAssignment().getRoom(), "Room");
         DeletableEntityValidator.validate(invoice.getRoomAssignment().getRoom().getProperty(), "Property");
-        return invoice;
+    }
+
+    private Payment findAndValidatePayment(UUID paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+        DeletableEntityValidator.validate(payment, "Payment");
+        return payment;
+    }
+
+    private void validateUserAccess(User user, Invoice invoice) {
+        boolean hasAccess = !PrivilegeChecker.withoutRight(user, invoice.getRoomAssignment().getRoom().getCreatedBy()) ||
+                !PrivilegeChecker.withoutRight(user, invoice.getRoomAssignment().getRoom().getProperty().getCreatedBy());
+        if (!hasAccess) {
+            throw new ResourceForbiddenException("You are not allowed to access this resource", invoice.getId());
+        }
     }
 
     private Payment createAndSavePayment(User user, Invoice invoice, CreatePaymentRequest request) {
@@ -49,48 +101,25 @@ public class PaymentService {
         return savedPayment;
     }
 
-    private void updateInvoiceStatus(Invoice invoice, Payment payment, UUID userId) {
+    private void updateInvoiceStatus(Invoice invoice, Payment payment) {
+        BigDecimal newAmountPaid = computeNewAmountPaid(invoice, payment);
+        BigDecimal totalAmount = BigDecimal.valueOf(invoice.getTotalAmount());
         invoice.setUpdatedAt(Instant.now());
-        invoice.setUpdatedBy(userId);
-        BigDecimal newAmountPaid = BigDecimal.valueOf(invoice.getAmountPaid()).add(BigDecimal.valueOf(payment.getAmountPaid()));
+        invoice.setUpdatedBy(payment.getCreatedBy());
         invoice.setAmountPaid(newAmountPaid.doubleValue());
-        invoice.setAmountDue(invoice.getTotalAmount() - invoice.getAmountPaid());
-        InvoiceStatus newStatus = calculateInvoiceStatus(newAmountPaid, BigDecimal.valueOf(invoice.getTotalAmount()));
-        invoice.setInvoiceStatus(newStatus);
+        invoice.setAmountDue(totalAmount.subtract(newAmountPaid).doubleValue());
+        invoice.setInvoiceStatus(calculateInvoiceStatus(newAmountPaid, totalAmount));
         invoiceRepository.save(invoice);
     }
 
+    private BigDecimal computeNewAmountPaid(Invoice invoice, Payment payment) {
+        return BigDecimal.valueOf(invoice.getAmountPaid())
+                .add(BigDecimal.valueOf(payment.getAmountPaid()));
+    }
+
     private InvoiceStatus calculateInvoiceStatus(BigDecimal amountPaid, BigDecimal totalAmount) {
-        if (amountPaid.compareTo(totalAmount) >= 0) {
-            return InvoiceStatus.PAID;
-        } else if (amountPaid.compareTo(BigDecimal.ZERO) > 0) {
-            return InvoiceStatus.PARTIAL_PAID;
-        }
+        if (amountPaid.compareTo(totalAmount) >= 0) return InvoiceStatus.PAID;
+        if (amountPaid.compareTo(BigDecimal.ZERO) > 0) return InvoiceStatus.PARTIAL_PAID;
         return InvoiceStatus.UNPAID;
-    }
-
-    @Transactional
-    public PaymentResponse createPayment(CustomUserDetails user, CreatePaymentRequest request) {
-        // Validate inputs
-        User validUser = validateUser(user);
-        Invoice invoice = findAndValidateInvoice(request.getInvoiceId());
-        // Create and save payment
-        Payment payment = createAndSavePayment(validUser, invoice, request);
-        // Update invoice status
-        updateInvoiceStatus(invoice, payment, validUser.getId());
-        return PaymentResponse.fromPayment(validUser, payment);
-    }
-
-    @Transactional
-    public List<PaymentResponse> getPaymentsOfInvoiceId(CustomUserDetails user, UUID invoiceId) {
-        User validUser = validateUser(user);
-        Invoice invoice = findAndValidateInvoice(invoiceId);
-        if (PrivilegeChecker.withoutRight(validUser, invoice.getRoomAssignment().getRoom().getCreatedBy())
-                && PrivilegeChecker.withoutRight(validUser, invoice.getRoomAssignment().getRoom().getProperty().getCreatedBy())
-        ) {
-            throw new ResourceForbiddenException("You are not allowed to access this resource", invoiceId);
-        }
-        List<Payment> payments = paymentRepository.findAllByInvoice(invoice);
-        return PaymentResponse.fromPayments(validUser, payments);
     }
 }

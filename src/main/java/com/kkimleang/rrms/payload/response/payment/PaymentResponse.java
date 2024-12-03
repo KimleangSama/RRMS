@@ -40,7 +40,6 @@ public class PaymentResponse {
         response.setFullname(payment.getInvoice().getRoomAssignment().getUser().getFullname());
         response.setInvoiceId(payment.getInvoice().getId());
         response.setRoomNumber(payment.getInvoice().getRoomAssignment().getRoom().getRoomNumber());
-
         response.setPaymentDate(payment.getPaymentDate());
         response.setExpectedAmount(payment.getInvoice().getAmountDue() + payment.getAmountPaid());
         response.setAmountPaid(payment.getAmountPaid());

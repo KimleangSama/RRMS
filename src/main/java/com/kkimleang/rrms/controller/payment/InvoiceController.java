@@ -2,17 +2,14 @@ package com.kkimleang.rrms.controller.payment;
 
 import com.kkimleang.rrms.annotation.*;
 import com.kkimleang.rrms.controller.*;
-import com.kkimleang.rrms.exception.*;
 import com.kkimleang.rrms.payload.*;
 import com.kkimleang.rrms.payload.request.payment.*;
 import com.kkimleang.rrms.payload.response.payment.*;
 import com.kkimleang.rrms.service.payment.*;
 import com.kkimleang.rrms.service.user.*;
-import com.kkimleang.rrms.util.*;
 import java.util.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
-import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -85,7 +82,7 @@ public class InvoiceController {
     public Response<InvoiceResponse> editInvoiceStatus(
             @CurrentUser CustomUserDetails user,
             @PathVariable("invoiceId") UUID invoiceId,
-            @RequestBody EditInvoiceStatusRequest request
+            @RequestBody EditInvoiceInfoRequest request
     ) {
         return service.executeServiceCall(() -> {
             InvoiceResponse response = invoiceService.editInvoiceStatus(user, invoiceId, request);

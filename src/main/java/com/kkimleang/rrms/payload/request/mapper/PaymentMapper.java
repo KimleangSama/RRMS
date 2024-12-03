@@ -14,4 +14,10 @@ public class PaymentMapper {
         payment.setCreatedAt(Instant.now());
         payment.setCreatedBy(user.getId());
     }
+
+    public static void mapToPayment(User user, Payment payment, EditPaymentInfoRequest request) {
+        ModelMapperConfig.modelMapper().map(request, payment);
+        payment.setUpdatedAt(Instant.now());
+        payment.setUpdatedBy(user.getId());
+    }
 }

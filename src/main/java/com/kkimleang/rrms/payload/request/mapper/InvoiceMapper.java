@@ -20,7 +20,7 @@ public class InvoiceMapper {
         invoice.setInvoiceStatus(request.getInvoiceStatus());
     }
 
-    public static void editInvoiceStatusFromEditInvoiceStatusRequest(Invoice invoice, EditInvoiceStatusRequest request) {
+    public static void editInvoiceStatusFromEditInvoiceStatusRequest(Invoice invoice, EditInvoiceInfoRequest request) {
         ModelMapperConfig.modelMapper().map(request, invoice);
     }
 }

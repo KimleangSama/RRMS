@@ -28,9 +28,6 @@ public class InvoiceService {
     private final RoomService roomService;
     private final PropertyRepository propertyRepository;
 
-    private static final int DEFAULT_CACHE_TTL = 3600; // 1 hour in seconds
-
-    @Cacheable(value = "invoices", key = "#request.roomAssignmentId")
     @Transactional
     public InvoiceResponse createInvoice(CustomUserDetails user, CreateInvoiceRequest request) {
         validateUser(user);
@@ -43,10 +40,10 @@ public class InvoiceService {
         invoice.setRoomAssignment(roomAssignment);
         InvoiceMapper.createInvoiceFromInvoiceRequest(invoice, request);
         invoice.setTotalAmount(calculateTotalAmount(invoice));
-        return InvoiceResponse.fromInvoice(user.getUser(), invoiceRepository.save(invoice));
+        invoice = invoiceRepository.save(invoice);
+        return InvoiceResponse.fromInvoice(user.getUser(), invoice);
     }
 
-    @Cacheable(value = "invoices", key = "'room_' + #roomId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfRoom(CustomUserDetails user, UUID roomId, int page, int size) {
         validateUser(user);
@@ -68,7 +65,6 @@ public class InvoiceService {
      * @throws ResourceForbiddenException if user lacks access rights
      * @throws ResourceNotFoundException  if room assignment not found
      */
-    @Cacheable(value = "invoices", key = "'assignment_' + #roomAssignmentId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfRoomAssignment(CustomUserDetails user, UUID roomAssignmentId, int page, int size) {
         validateUser(user);
@@ -87,7 +83,6 @@ public class InvoiceService {
         return InvoiceResponse.fromInvoices(user.getUser(), invoices.getContent());
     }
 
-    @Cacheable(value = "invoices", key = "'property_' + #propertyId + '_page_' + #page + '_size_' + #size")
     @Transactional
     public List<InvoiceResponse> getInvoicesOfProperty(CustomUserDetails user, UUID propertyId, int page, int size) {
         validateUser(user);
@@ -101,7 +96,7 @@ public class InvoiceService {
 
     @CachePut(value = "invoices", key = "#invoiceId")
     @Transactional
-    public InvoiceResponse editInvoiceStatus(CustomUserDetails user, UUID invoiceId, EditInvoiceStatusRequest request) {
+    public InvoiceResponse editInvoiceStatus(CustomUserDetails user, UUID invoiceId, EditInvoiceInfoRequest request) {
         validateUser(user);
         Invoice invoice = validateAndGetInvoice(invoiceId);
         InvoiceMapper.editInvoiceStatusFromEditInvoiceStatusRequest(invoice, request);

@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class EditInvoiceStatusRequest {
+public class EditInvoiceInfoRequest {
     private LocalDateTime dueDate;
     private String remark;
     private InvoiceStatus invoiceStatus;

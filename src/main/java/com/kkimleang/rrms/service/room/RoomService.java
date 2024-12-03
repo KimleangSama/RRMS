@@ -55,7 +55,8 @@ public class RoomService {
 
     @Transactional
     public List<RoomResponse> getOpenRooms(CustomUserDetails user, int page, int size) {
-        Page<Room> rooms = roomRepository.findWhereStatusIsNotAssigned(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Room> rooms = roomRepository.findWhereStatusIsNotAssigned(pageable);
         if (rooms.isEmpty()) {
             throw new ResourceNotFoundException(ROOM, "No rooms found");
         }
@@ -162,6 +163,8 @@ public class RoomService {
     }
 
     public List<Room> findRoomsByPropertyId(UUID id) {
-        return roomRepository.findByPropertyId(id);
+        return roomRepository.findByPropertyId(id).stream()
+                .filter(r -> (r.getDeletedAt() == null || r.getDeletedBy() != null))
+                .toList();
     }
 }

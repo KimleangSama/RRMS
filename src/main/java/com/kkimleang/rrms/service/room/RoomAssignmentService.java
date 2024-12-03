@@ -135,6 +135,9 @@ public class RoomAssignmentService {
 
     public List<RoomAssignment> findRoomAssignmentsByRooms(List<Room> rooms) {
         return roomAssignmentRepository.findRoomAssignmentsByRoomIn(rooms)
-                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "rooms"));
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "rooms"))
+                .stream()
+                .filter(assignment -> assignment.getDeletedBy() == null || assignment.getDeletedAt() == null)
+                .toList();
     }
 }
