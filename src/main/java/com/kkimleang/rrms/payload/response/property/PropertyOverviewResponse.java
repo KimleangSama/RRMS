@@ -1,16 +1,14 @@
 package com.kkimleang.rrms.payload.response.property;
 
-import com.kkimleang.rrms.config.ModelMapperConfig;
-import com.kkimleang.rrms.entity.Property;
-import com.kkimleang.rrms.entity.User;
+import com.kkimleang.rrms.config.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.util.*;
+import java.io.*;
+import java.util.*;
 import lombok.*;
+import lombok.extern.slf4j.*;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+@Slf4j
 @Getter
 @Setter
 @ToString
@@ -30,6 +28,7 @@ public class PropertyOverviewResponse implements Serializable {
     private Boolean hasPrivilege = false;
 
     public static PropertyOverviewResponse fromProperty(User user, Property property) {
+        DeletableEntityValidator.validate(property, "Property");
         PropertyOverviewResponse propertyResponse = new PropertyOverviewResponse();
         ModelMapperConfig.modelMapper().map(property, propertyResponse);
         if (user != null && user.getId().equals(property.getUser().getId())) {
@@ -44,12 +43,17 @@ public class PropertyOverviewResponse implements Serializable {
     public static List<PropertyOverviewResponse> fromProperties(User user, List<Property> properties) {
         List<PropertyOverviewResponse> propertyResponses = new ArrayList<>();
         for (Property property : properties) {
-            propertyResponses.add(fromProperty(user, property));
+            try {
+                propertyResponses.add(fromProperty(user, property));
+            } catch (Exception e) {
+                log.debug("Property {} is deleted at {}", property.getId(), property.getDeletedAt());
+            }
         }
         return propertyResponses;
     }
 
     public static PropertyOverviewResponse fromPropertyResponse(PropertyResponse property) {
+        DeletableEntityValidator.validate(property, "Property");
         PropertyOverviewResponse response = new PropertyOverviewResponse();
         ModelMapperConfig.modelMapper().map(property, response);
         return response;

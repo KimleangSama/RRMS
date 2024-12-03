@@ -28,7 +28,7 @@ public class PaymentResponse {
     private PaymentMethod paymentMethod;
 
     public static PaymentResponse fromPayment(User user, Payment payment) {
-        NullOrDeletedEntityValidator.validate(payment, "Payment");
+        DeletableEntityValidator.validate(payment, "Payment");
         PaymentResponse response = new PaymentResponse();
         response.setId(payment.getId());
         response.setTenantId(payment.getInvoice().getRoomAssignment().getUser().getId());

@@ -1,19 +1,15 @@
 package com.kkimleang.rrms.payload.response.property;
 
-import com.kkimleang.rrms.config.ModelMapperConfig;
-import com.kkimleang.rrms.entity.Property;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.exception.ResourceDeletionException;
-import com.kkimleang.rrms.payload.response.file.FileResponse;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import com.kkimleang.rrms.config.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.response.file.*;
+import com.kkimleang.rrms.util.*;
+import java.io.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.modelmapper.*;
 
 @Slf4j
 @Data
@@ -47,7 +43,7 @@ public class PropertyResponse implements Serializable {
     private static final String DELETION_LOG = "Property {} is deleted at {}";
 
     public static PropertyResponse fromProperty(Property property) {
-        validateProperty(property);
+        DeletableEntityValidator.validate(property, "Property");
         return createPropertyResponse(property);
     }
 
@@ -83,12 +79,6 @@ public class PropertyResponse implements Serializable {
                 })
                 .filter(Objects::nonNull)
                 .toList();
-    }
-
-    private static void validateProperty(Property property) {
-        if (property.getDeletedBy() != null || property.getDeletedAt() != null) {
-            throw new ResourceDeletionException("Property", property.getDeletedAt().toString());
-        }
     }
 
     private static PropertyResponse createPropertyResponse(Property property) {

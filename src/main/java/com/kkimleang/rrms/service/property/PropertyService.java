@@ -1,34 +1,24 @@
 package com.kkimleang.rrms.service.property;
 
-import com.kkimleang.rrms.entity.PropRoomPicture;
-import com.kkimleang.rrms.entity.Property;
-import com.kkimleang.rrms.entity.User;
-import com.kkimleang.rrms.exception.*;
-import com.kkimleang.rrms.payload.request.mapper.PropertyMapper;
-import com.kkimleang.rrms.payload.request.property.CreatePropertyRequest;
-import com.kkimleang.rrms.payload.request.property.EditPropertyBasicRequest;
-import com.kkimleang.rrms.payload.request.property.EditPropertyContactRequest;
-import com.kkimleang.rrms.payload.response.property.PropertyOverviewResponse;
-import com.kkimleang.rrms.payload.response.property.PropertyResponse;
-import com.kkimleang.rrms.repository.file.PropRoomPictureRepository;
-import com.kkimleang.rrms.repository.property.PropertyRepository;
-import com.kkimleang.rrms.service.user.CustomUserDetails;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.*;
-
-import static com.kkimleang.rrms.constant.PrivilegeLogErrorMessage.FORBIDDEN;
+import static com.kkimleang.rrms.constant.PrivilegeLogErrorMessage.*;
 import static com.kkimleang.rrms.constant.PropertyLogErrorMessage.*;
+import com.kkimleang.rrms.entity.*;
+import com.kkimleang.rrms.exception.*;
+import com.kkimleang.rrms.payload.request.mapper.*;
+import com.kkimleang.rrms.payload.request.property.*;
+import com.kkimleang.rrms.payload.response.property.*;
+import com.kkimleang.rrms.repository.file.*;
+import com.kkimleang.rrms.repository.property.*;
+import com.kkimleang.rrms.service.user.*;
+import com.kkimleang.rrms.util.*;
+import jakarta.transaction.*;
+import java.time.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.cache.annotation.*;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.*;
 
 @Slf4j
 @Service
@@ -58,7 +48,7 @@ public class PropertyService {
 
     private Property findPropertyById(UUID propertyId) {
         return propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new ResourceNotFoundException(PROPERTY, "Id"));
+                .orElseThrow(() -> new ResourceNotFoundException(PROPERTY, "id: " + propertyId));
     }
 
     @Transactional
@@ -119,19 +109,9 @@ public class PropertyService {
     @Cacheable(key = "#propertyId")
     @Transactional
     public PropertyResponse findPropertyById(CustomUserDetails user, UUID propertyId) {
-        try {
-            Property property = findPropertyById(propertyId);
-            return createSinglePropertyResponse(user, property);
-        } catch (ResourceDeletionException e) {
-            log.error("{}", e.getMessage(), e);
-            throw e;
-        } catch (ResourceNotFoundException e) {
-            log.error("Failed to find property: {}", e.getMessage(), e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to find property: {}", e.getMessage(), e);
-            throw new ResourceException(PROPERTY_GET_FAILED, e.getMessage());
-        }
+        Property property = findPropertyById(propertyId);
+        DeletableEntityValidator.validate(property, PROPERTY);
+        return createSinglePropertyResponse(user, property);
     }
 
     private PropertyResponse createSinglePropertyResponse(CustomUserDetails user, Property property) {
@@ -144,16 +124,11 @@ public class PropertyService {
     @Cacheable(key = "#landlordId")
     @Transactional
     public List<PropertyOverviewResponse> getLandlordProperties(CustomUserDetails user, UUID landlordId) {
-        try {
-            List<Property> properties = propertyRepository.findByUserId(landlordId);
-            if (properties.isEmpty()) {
-                throw new ResourceNotFoundException(PROPERTY, "of landlord id " + landlordId);
-            }
-            return createPropertyOverviewResponse(user, properties);
-        } catch (Exception e) {
-            log.error("Failed to get landlord properties: {}", e.getMessage(), e);
-            throw new ResourceException(PROPERTY_GET_FAILED, e.getMessage());
+        List<Property> properties = propertyRepository.findByUserId(landlordId);
+        if (properties.isEmpty()) {
+            throw new ResourceNotFoundException(PROPERTY, "of landlord id " + landlordId);
         }
+        return createPropertyOverviewResponse(user, properties);
     }
 
     private List<PropertyOverviewResponse> createPropertyOverviewResponse(CustomUserDetails user, List<Property> properties) {
@@ -189,34 +164,25 @@ public class PropertyService {
     @CacheEvict(key = "#propertyId")
     @Transactional
     public PropertyResponse deleteProperty(CustomUserDetails user, UUID propertyId) {
-        try {
-            Property property = findPropertyById(propertyId);
-            validateUserPrivilege(user, property);
-            PropertyResponse response = PropertyResponse.fromProperty(property);
-            property.setDeletedBy(user.getUser().getId());
-            property.setDeletedAt(Instant.now());
-            propertyRepository.save(property);
-            return response;
-        } catch (Exception e) {
-            log.error("Failed to delete property: {}", e.getMessage(), e);
-            throw new ResourceDeletionException(PROPERTY, e.getMessage());
-        }
+        Property property = findPropertyById(propertyId);
+        validateUserPrivilege(user, property);
+        PropertyResponse response = PropertyResponse.fromProperty(property);
+        property.setDeletedBy(user.getUser().getId());
+        property.setDeletedAt(Instant.now());
+        property.setName(RandomString.make(16));
+        propertyRepository.save(property);
+        return response;
     }
 
     @Cacheable(value = "recommended-properties", key = "#user.user.id")
     public List<PropertyResponse> getRecommendedProperties(CustomUserDetails user) {
         validateUser(user);
-        try {
-            User currentUser = user.getUser();
-            List<Property> properties = propertyRepository.findNearbyProperties(
-                    currentUser.getPreferredLatitude(),
-                    currentUser.getPreferredLongitude(),
-                    currentUser.getPreferredRadius()
-            );
-            return PropertyResponse.fromProperties(currentUser, properties);
-        } catch (Exception e) {
-            log.error("Failed to get recommended properties: {}", e.getMessage(), e);
-            throw new ResourceException(PROPERTY_GET_FAILED, e.getMessage());
-        }
+        User currentUser = user.getUser();
+        List<Property> properties = propertyRepository.findNearbyProperties(
+                currentUser.getPreferredLatitude(),
+                currentUser.getPreferredLongitude(),
+                currentUser.getPreferredRadius()
+        );
+        return PropertyResponse.fromProperties(currentUser, properties);
     }
 }

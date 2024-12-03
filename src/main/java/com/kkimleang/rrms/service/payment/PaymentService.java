@@ -38,15 +38,15 @@ public class PaymentService {
 
     private User validateUser(CustomUserDetails user) {
         User validUser = user.getUser();
-        NullOrDeletedEntityValidator.validate(validUser, "User");
+        DeletableEntityValidator.validate(validUser, "User");
         return validUser;
     }
 
     private Invoice findAndValidateInvoice(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
-        NullOrDeletedEntityValidator.validate(invoice, "Invoice");
-        NullOrDeletedEntityValidator.validate(invoice.getRoomAssignment(), "Room Assignment");
+        DeletableEntityValidator.validate(invoice, "Invoice");
+        DeletableEntityValidator.validate(invoice.getRoomAssignment(), "Room Assignment");
         return invoice;
     }
 

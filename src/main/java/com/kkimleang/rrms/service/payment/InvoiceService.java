@@ -119,7 +119,7 @@ public class InvoiceService {
 
     // Private helper methods
     private void validateUser(CustomUserDetails user) {
-        NullOrDeletedEntityValidator.validate(user.getUser(), "User");
+        DeletableEntityValidator.validate(user.getUser(), "User");
     }
 
     private RoomAssignment getRoomAssignmentById(UUID id) {
@@ -129,27 +129,28 @@ public class InvoiceService {
 
     private Room validateAndGetRoom(UUID roomId) {
         Room room = roomService.findByRoomId(roomId);
-        NullOrDeletedEntityValidator.validate(room, "Room");
+        DeletableEntityValidator.validate(room, "Room");
         return room;
     }
 
     private List<RoomAssignment> validateAndGetRoomAssignments(UUID roomId) {
         List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
-        NullOrDeletedEntityValidator.validate(assignments, "Room Assignment");
+        DeletableEntityValidator.validate(assignments, "Room Assignment");
         return assignments;
     }
 
     private RoomAssignment validateAndGetRoomAssignment(UUID roomAssignmentId) {
         RoomAssignment assignment = getRoomAssignmentById(roomAssignmentId);
-        if (assignment.getDeletedAt() != null || assignment.getDeletedBy() != null) {
-            throw new ResourceNotFoundException("Room Assignment", roomAssignmentId);
-        }
+//        if (assignment.getDeletedAt() != null || assignment.getDeletedBy() != null) {
+//            throw new ResourceNotFoundException("Room Assignment", roomAssignmentId);
+//        }
+        DeletableEntityValidator.validate(assignment, "Room Assignment");
         return assignment;
     }
 
     private List<RoomAssignment> validateAndGetRoomAssignmentsForRoom(UUID roomId) {
         List<RoomAssignment> assignments = roomAssignmentService.findByRoomId(roomId);
-        NullOrDeletedEntityValidator.validate(assignments, "Room Assignment");
+        DeletableEntityValidator.validate(assignments, "Room Assignment");
         return assignments;
     }
 
@@ -174,7 +175,7 @@ public class InvoiceService {
     private Property validateAndGetProperty(UUID propertyId) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", propertyId));
-        NullOrDeletedEntityValidator.validate(property, "Property");
+        DeletableEntityValidator.validate(property, "Property");
         return property;
     }
 
@@ -195,7 +196,7 @@ public class InvoiceService {
     private Invoice validateAndGetInvoice(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
-        NullOrDeletedEntityValidator.validate(invoice, "Invoice");
+        DeletableEntityValidator.validate(invoice, "Invoice");
         return invoice;
     }
 

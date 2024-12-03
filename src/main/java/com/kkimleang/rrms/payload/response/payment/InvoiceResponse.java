@@ -41,13 +41,13 @@ public class InvoiceResponse {
             Boolean hasPrivilege
     ) {
         RoomAssignment roomAssignment = invoice.getRoomAssignment();
-        NullOrDeletedEntityValidator.validate(roomAssignment, "Room Assignment");
+        DeletableEntityValidator.validate(roomAssignment, "Room Assignment");
 
         Room room = invoice.getRoomAssignment().getRoom();
-        NullOrDeletedEntityValidator.validate(invoice.getRoomAssignment().getRoom(), "Room");
+        DeletableEntityValidator.validate(invoice.getRoomAssignment().getRoom(), "Room");
 
         User tenant = invoice.getRoomAssignment().getUser();
-        NullOrDeletedEntityValidator.validate(tenant, "Tenant");
+        DeletableEntityValidator.validate(tenant, "Tenant");
 
         InvoiceResponse response = new InvoiceResponse();
         modelMapper.map(invoice, response);
@@ -69,7 +69,7 @@ public class InvoiceResponse {
         List<InvoiceResponse> responses = new ArrayList<>();
         for (Invoice invoice : invoices) {
             try {
-                NullOrDeletedEntityValidator.validate(invoice, "Invoice");
+                DeletableEntityValidator.validate(invoice, "Invoice");
                 responses.add(fromInvoice(user, invoice));
             } catch (Exception e) {
                 log.debug("Failed to map invoice to response: {}", e.getMessage());
