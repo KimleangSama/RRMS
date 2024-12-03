@@ -16,7 +16,7 @@ public class PaymentResponse {
     private UUID id;
 
     private UUID tenantId;
-    private String tenantFullname;
+    private String fullname;
 
     private UUID invoiceId;
     private String roomNumber;
@@ -27,14 +27,20 @@ public class PaymentResponse {
     private Double amountDue;
     private PaymentMethod paymentMethod;
 
+    private Boolean hasPrivilege = false;
+
     public static PaymentResponse fromPayment(User user, Payment payment) {
         DeletableEntityValidator.validate(payment, "Payment");
         PaymentResponse response = new PaymentResponse();
         response.setId(payment.getId());
+        if (user != null && user.getId().equals(payment.getInvoice().getCreatedBy())) {
+            response.setHasPrivilege(true);
+        }
         response.setTenantId(payment.getInvoice().getRoomAssignment().getUser().getId());
-        response.setTenantFullname(payment.getInvoice().getRoomAssignment().getUser().getFullname());
+        response.setFullname(payment.getInvoice().getRoomAssignment().getUser().getFullname());
         response.setInvoiceId(payment.getInvoice().getId());
         response.setRoomNumber(payment.getInvoice().getRoomAssignment().getRoom().getRoomNumber());
+
         response.setPaymentDate(payment.getPaymentDate());
         response.setExpectedAmount(payment.getInvoice().getAmountDue() + payment.getAmountPaid());
         response.setAmountPaid(payment.getAmountPaid());
